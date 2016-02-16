@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/OvlReader" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>

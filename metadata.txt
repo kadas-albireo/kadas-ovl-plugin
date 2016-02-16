@@ -1,0 +1,39 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Ovl Reader
+qgisMinimumVersion=2.0
+description=This plugin reads ovl data
+version=0.1
+author=Cédric Christen
+email=cch@sourcepole.ch
+
+about=Read ovl files into Qgis.
+
+tracker=https://github.com/cedi4155476/ovl_reader/issues
+repository=git@github.com:cedi4155476/ovl_reader.git
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=
+
+homepage=
+category=Plugins
+icon=icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+

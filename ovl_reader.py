@@ -183,6 +183,7 @@ class OvlReader:
         """Run method that performs all the real work"""
         # show the dialog
         self.dlg.show()
+        self.dlg.iface = self.iface
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed

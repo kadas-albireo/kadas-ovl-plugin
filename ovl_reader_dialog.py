@@ -23,19 +23,24 @@
 
 import os
 
-from PyQt4 import QtGui, uic
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
+from ovl_reader_dialog_base import Ui_OvlReaderDialogBase
+from qgsvbsovlimporter import QgsVBSOvlImporter
 
-FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'ovl_reader_dialog_base.ui'))
 
-
-class OvlReaderDialog(QtGui.QDialog, FORM_CLASS):
+class OvlReaderDialog(QDialog, Ui_OvlReaderDialogBase):
     def __init__(self, parent=None):
         """Constructor."""
-        super(OvlReaderDialog, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+        QDialog.__init__(self, parent)
         self.setupUi(self)
+        self.filepathLE.setText("/home/cch/Documents/python/vbs_ovl/test/Lagedarstellung_Reglement.ovl")
+
+    @pyqtSignature("")
+    def on_filesearchPB_clicked(self):
+        self.filepathLE.setText(QFileDialog.getOpenFileName())
+
+    @pyqtSignature("")
+    def on_buttonBox_accepted(self):
+        importer = QgsVBSOvlImporter()
+        importer.import_ovl(unicode(self.filepathLE.text()), self.iface)

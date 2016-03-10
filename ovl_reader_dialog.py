@@ -44,3 +44,4 @@ class OvlReaderDialog(QDialog, Ui_OvlReaderDialogBase):
     def on_buttonBox_accepted(self):
         importer = QgsVBSOvlImporter()
         importer.import_ovl(unicode(self.filepathLE.text()), self.iface)
+        self.close()

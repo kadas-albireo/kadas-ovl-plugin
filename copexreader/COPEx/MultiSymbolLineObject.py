@@ -24,8 +24,8 @@ class MultiSymbolLineObject(COPExObject):
                 lat, lng, hgt = ms.read_coordinate()
                 self.coords.append(CoordLL84(lat, lng, hgt))
 
-            self.display_name = ms.read_string().decode('UTF-8')
-            self.symbol_string = ms.read_string().decode('UTF-8')
+            self.display_name = ms.read_string().decode('latin-1')
+            self.symbol_string = ms.read_string().decode('latin-1')
         elif version == 0x0100:
             # strings are ASCII coded
             coord_count = ms.read_dword()
@@ -35,8 +35,8 @@ class MultiSymbolLineObject(COPExObject):
                 lat, lng, hgt = ms.read_coordinate()
                 self.coords.append(CoordLL84(lat, lng, hgt))
 
-            self.display_name = ms.read_string()
-            self.symbol_string = ms.read_string()
+            self.display_name = ms.read_string().decode('latin-1')
+            self.symbol_string = ms.read_string().decode('latin-1')
 
         self.kvm.set_key_value_string(self.symbol_string)
 

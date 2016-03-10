@@ -11,7 +11,7 @@ class MemStream(object):
 
     def read_dword(self):
         # unsigned Long, 4 bytes
-        dw, = struct.unpack_from('L', self.data, self.idx_data)
+        dw, = struct.unpack_from('I', self.data, self.idx_data)
         self.idx_data += 4
 
         return dw

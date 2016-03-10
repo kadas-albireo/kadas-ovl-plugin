@@ -24,8 +24,8 @@ class MultiSymbolObject(COPExObject):
             self.coords = []
             self.coords.append(CoordLL84(lat, lng, hgt))
 
-            self.symbol_string = ms.read_string().decode('UTF-8')
-            self.display_name = ms.read_string().decode('UTF-8')
+            self.symbol_string = ms.read_string().decode('latin-1')
+            self.display_name = ms.read_string().decode('latin-1')
         elif version == 0x0100:
             # strings are ASCII coded
 
@@ -36,8 +36,8 @@ class MultiSymbolObject(COPExObject):
             self.coords = []
             self.coords.append(CoordLL84(lat, lng, hgt))
 
-            self.symbol_string = ms.read_string()
-            self.display_name = ms.read_string()
+            self.symbol_string = ms.read_string().decode('latin-1')
+            self.display_name = ms.read_string().decode('latin-1')
 
     def __str__(self):
         str_ret = ""

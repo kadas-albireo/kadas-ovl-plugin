@@ -49,7 +49,7 @@ class QgsVBSOvlImporter(QObject):
         file_list = zf.namelist()
         # geogrid(filename, "geogrid50.xml")
         if 'geogrid50.xml' not in file_list:
-            MessageBox.warning(self.iface.mainWindow(), self.tr("Error"), self.tr("Cannot open file for reading: %1").arg(QFileInfo(filename).fileName()))
+            MessageBox.warning(self.iface.mainWindow(), self.tr("Error"), self.tr("Cannot open file for reading:  {fn}").format(fn=QFileInfo(filename).fileName()))
             return
 
         geogrid = zf.read('geogrid50.xml')
@@ -86,23 +86,19 @@ class QgsVBSOvlImporter(QObject):
                 count += 1
             elif clsid == "{6074C216-B8DF-4207-883F-862EFE9346BC}":  # GeoBitmap
                 pass
-            elif clsid == "{E8032F4A-A3B2-446A-B71F-6B3D43DDF5E5}":
-                self.parseCopex(object, clsid)
-            elif clsid == "{AE42E103-74BD-44E2-A15A-BD4F40362167}":
-                self.parseCopex(object, clsid)
-            elif clsid == "{C1FD308D-CE83-4294-855C-2613F97CC7B4}":
-                self.parseCopex(object, clsid)
-            elif clsid == "{D2B5BBF4-E847-4726-B60A-F3DCB1500F5B}":
-                self.parseCopex(object, clsid)
-            elif clsid == "{C9184146-7335-4D0B-B7F8-8E6294267E4D}":
-                self.parseCopex(object, clsid)
+            elif clsid == "{06D46883-9097-4F0A-AE96-95E0BB375DE1}":
+                self.parseCopexLine(object)
+            elif clsid == "{A5EC4300-889F-4511-92B6-B34C26299F5E}":
+                self.parseCopexSign(object)
             else:
-                QgsDebugMsg("Unhandled clsid %1".arg(clsid))
+                qDebug("Unhandled clsid {cls}".format(cls=clsid))
 
             object = object.nextSiblingElement("object")
-        self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
+        # TODO: Ist das der richtige Weg?
+        # self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
+        self.iface.mapCanvas().clearCache()
         self.iface.mapCanvas().refresh()
-        QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("%1 features were imported.").arg(count))
+        QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("{cnt} features were imported.").format(cnt=count))
 
     def parseGraphic(self, attribute, points):
         coord = attribute.firstChildElement("coordList").firstChildElement("coord")
@@ -111,10 +107,12 @@ class QgsVBSOvlImporter(QObject):
             y = float(coord.attribute("y"))
             points.append(QgsPointV2(x, y))
             coord = coord.nextSiblingElement("coord")
+        return attribute, points
 
     def parseGraphicTooltip(self, attribute, tooltip):
         enabled = attribute.firstChildElement("enable").text() == "True"
         tooltip = attribute.firstChildElement("text").text() if enabled else ""
+        return attribute, tooltip
 
     def parseGraphicLineAttributes(self, attribute, outline, lineSize, lineStyle):
         color = attribute.firstChildElement("color")
@@ -126,6 +124,7 @@ class QgsVBSOvlImporter(QObject):
             int(colorAlpha.text()))
         lineSize = int(attribute.firstChildElement("size").text())
         lineStyle = self.ConvertLineStyle(int(attribute.firstChildElement("lineStyle").text()))
+        return attribute, outline, lineSize, lineStyle
 
     def parseGraphicFillAttributes(self, attribute, fill, fillStyle):
         color = attribute.firstChildElement("color")
@@ -136,6 +135,7 @@ class QgsVBSOvlImporter(QObject):
             int(color.attribute("blue")),
             int(colorAlpha.text()))
         fillStyle = self.convertFillStyle(int(attribute.firstChildElement("fillStyle").text()))
+        return attribute, fill, fillStyle
 
     def parseGraphicDimmAttributes(self, attribute, dimm, factor):
         color = attribute.firstChildElement("color")
@@ -144,24 +144,30 @@ class QgsVBSOvlImporter(QObject):
             int(color.attribute("green")),
             int(color.attribute("blue")))
         factor = float(attribute.firstChildElement("factor").text())
+        return attribute, dimm, factor
 
     def parseGraphicSinglePointAttributes(self, attribute, width, height, rotation):
         height = float(attribute.firstChildElement("height").text())
         width = float(attribute.firstChildElement("width").text())
         rotation = float(attribute.firstChildElement("rotation").text())
+        return attribute, width, height, rotation
 
     def parseGraphicWHUSetable(self, attribute, whu):
         whu = int(attribute.firstChildElement("unit").text())
+        return attribute, whu
 
     def parseGraphicDelimiter(self, attribute, startDelimiter, endDelimiter):
         startDelimiter = int(attribute.firstChildElement("startDelimiter").text())
         endDelimiter = int(attribute.firstChildElement("endDelimiter").text())
+        return attribute, startDelimiter, endDelimiter
 
     def parseGraphicRoundable(self, attribute, roundable):
         roundable = attribute.firstChildElement("roundable").text() == "True"
+        return attribute, roundable
 
     def parseGraphicCloseable(self, attribute, roundable):
         roundable = attribute.firstChildElement("closeable").text() == "True"
+        return attribute, roundable
 
     def parseGraphicTextAttributes(self, attribute, text, textColor, font):
         color = attribute.firstChildElement("color")
@@ -173,8 +179,9 @@ class QgsVBSOvlImporter(QObject):
             int(colorAlpha.text()))
         text = attribute.firstChildElement("text").text()
         font.setFamily(attribute.firstChildElement("fontFamily").text())
-        font.setItalic(int(attribute.firstChildElement("italic").text()))
-        font.setBold(int(attribute.firstChildElement("bold").text()))
+        font.setItalic(bool(attribute.firstChildElement("italic").text()))
+        font.setBold(bool(attribute.firstChildElement("bold").text()))
+        return attribute, text, textColor, font
 
     def applyDimm(self, factor, dimmColor, outline=0, fill=0):
         if outline:
@@ -185,6 +192,7 @@ class QgsVBSOvlImporter(QObject):
             fill.setRed(fill.red() * (1. - factor) + dimmColor.red() * factor)
             fill.setGreen(fill.green() * (1. - factor) + dimmColor.green() * factor)
             fill.setBlue(fill.blue() * (1. - factor) + dimmColor.blue() * factor)
+        return factor, dimmColor, outline, fill
 
     def parseRectangleTriangleCircle(self, object):
         point = QgsPointV2()
@@ -199,6 +207,7 @@ class QgsVBSOvlImporter(QObject):
         fill = QColor()
         dimmColor = QColor()
         tooltip = ""
+        whu = 0
 
         attribute = object.firstChildElement("attributeList").firstChildElement("attribute")
         while not attribute.isNull():
@@ -206,68 +215,68 @@ class QgsVBSOvlImporter(QObject):
             if iidName == "IID_IGraphic":
                 points = []
                 self.parseGraphic(attribute, points)
-                if not points.isEmpty():
-                    point = points.first()
-                elif iidName == "IID_IGraphicTooltip":
-                    self.parseGraphicTooltip(attribute, tooltip)
-                elif (iidName == "IID_IGraphicLineAttributes"):
-                    self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
-                elif iidName == "IID_IGraphicFillAttributes":
-                    self.parseGraphicFillAttributes(attribute, fill, fillStyle)
-                elif iidName == "IID_IGraphicDimmAttributes":
-                    self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
-                elif iidName == "IID_IGraphicSinglePointAttributes":
-                    self.parseGraphicSinglePointAttributes(attribute, width, height, rotation)
-                elif iidName == "IID_IGraphicWHUSetable":
-                    self.parseGraphicWHUSetable(attribute, whu)
+                if points:
+                    point = points[0]
+            elif iidName == "IID_IGraphicTooltip":
+                attribute, tooltip = self.parseGraphicTooltip(attribute, tooltip)
+            elif (iidName == "IID_IGraphicLineAttributes"):
+                attribute, outline, lineSize, lineStyle = self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
+            elif iidName == "IID_IGraphicFillAttributes":
+                attribute, fill, fillStyle = self.parseGraphicFillAttributes(attribute, fill, fillStyle)
+            elif iidName == "IID_IGraphicDimmAttributes":
+                attribute, dimmColor, dimmFactor = self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
+            elif iidName == "IID_IGraphicSinglePointAttributes":
+                attribute, width, height, rotation = self.parseGraphicSinglePointAttributes(attribute, width, height, rotation)
+            elif iidName == "IID_IGraphicWHUSetable":
+                attribute, whu = self.parseGraphicWHUSetable(attribute, whu)
 
-                attribute = attribute.nextSiblingElement("attribute")
+            attribute = attribute.nextSiblingElement("attribute")
 
-            self.applyDimm(dimmFactor, dimmColor, outline, fill)
+        dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
 
-            clsid = object.attribute("clsid")
-            if whu == Meters:
-                da = QgsDistanceArea()
-                da.convertMeasurement(width, QGis.Meters, QGis.Degrees, False)
-                da.convertMeasurement(height, QGis.Meters, QGis.Degrees, False)
-                if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
-                    ring = QgsLineStringV2()
-                    ring.setPoints([
-                        QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
-                        QgsPointV2(point.x() + .5 * width, point.y() - .5 * height),
-                        QgsPointV2(point.x() + .5 * width, point.y() + .5 * height),
-                        QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
-                        QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
-                elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
-                    ring = QgsLineStringV2()
-                    ring.setPoints([
-                        QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
-                        QgsPointV2(point.x() + .5 * width, point.y() - .5 * height),
-                        QgsPointV2(point.x() + .5 * width, point.y() + .5 * height),
-                        QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
-                        QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
-                elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
-                    ring = QgsCircularStringV2
-                    ring.setPoints([
-                        QgsPointV2(point.x() + .5 * width, point.y()),
-                        QgsPointV2(point.x(), point.y()),
-                        QgsPointV2(point.x() + .5 * width, point.y())])
-                poly = QgsCurvePolygonV2()
-                poly.setExteriorRing(ring)
-                self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "", tooltip)
-            else:
-                width = (width * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
-                height = (height * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
-                shape = ""
-                if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
-                    shape = "rectangle"
-                elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
-                    shape = "triangle"
-                elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
-                    shape = "circle"
+        clsid = object.attribute("clsid")
+        if whu == self.Meters:
+            da = QgsDistanceArea()
+            da.convertMeasurement(width, QGis.Meters, QGis.Degrees, False)
+            da.convertMeasurement(height, QGis.Meters, QGis.Degrees, False)
+            if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
+                ring = QgsLineStringV2()
+                ring.setPoints([
+                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
+                    QgsPointV2(point.x() + .5 * width, point.y() - .5 * height),
+                    QgsPointV2(point.x() + .5 * width, point.y() + .5 * height),
+                    QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
+                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
+            elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
+                ring = QgsLineStringV2()
+                ring.setPoints([
+                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
+                    QgsPointV2(point.x() + .5 * width, point.y() - .5 * height),
+                    QgsPointV2(point.x() + .5 * width, point.y() + .5 * height),
+                    QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
+                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
+            elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
+                ring = QgsCircularStringV2
+                ring.setPoints([
+                    QgsPointV2(point.x() + .5 * width, point.y()),
+                    QgsPointV2(point.x(), point.y()),
+                    QgsPointV2(point.x() + .5 * width, point.y())])
+            poly = QgsCurvePolygonV2()
+            poly.setExteriorRing(ring)
+            self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "", tooltip)
+        else:
+            width = (width * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
+            height = (height * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
+            shape = ""
+            if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
+                shape = "rectangle"
+            elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
+                shape = "triangle"
+            elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
+                shape = "circle"
 
-                flags = "symbol=%1,w=%2,h=%3,r=%4".arg(shape).arg(width).arg(height).arg(rotation)
-                self.iface.redliningLayer().addShape(QgsGeometry(point.clone()), outline, fill, lineSize, lineStyle, fillStyle, flags, tooltip)
+            flags = "symbol={shp},w={wdth},h={hght},r={rot}".format(shp=shape, wdth=width, hght=height, rot=rotation)
+            self.iface.redliningLayer().addShape(QgsGeometry(point.clone()), outline, fill, lineSize, lineStyle, fillStyle, flags, tooltip)
 
     def parseLine(self, object):
         points = []
@@ -275,8 +284,8 @@ class QgsVBSOvlImporter(QObject):
         lineStyle = Qt.SolidLine
         outline = QColor()
         dimmColor = QColor()
-        startDelimiter = QgsVBSOvlImporter.NoDelimiter
-        endDelimiter = QgsVBSOvlImporter.NoDelimiter
+        startDelimiter = self.NoDelimiter
+        endDelimiter = self.NoDelimiter
         tooltip = ""
         dimmFactor = 0.
         roundable = False
@@ -286,23 +295,23 @@ class QgsVBSOvlImporter(QObject):
         while not attribute.isNull():
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
-                self.parseGraphic(attribute, points)
+                attribute, points = self.parseGraphic(attribute, points)
             elif iidName == "IID_IGraphicDelimiter":
-                self.parseGraphicDelimiter(attribute, startDelimiter, endDelimiter)
+                attribute, startDelimiter, endDelimiter = self.parseGraphicDelimiter(attribute, startDelimiter, endDelimiter)
             elif iidName == "IID_IGraphicTooltip":
-                self.parseGraphicTooltip(attribute, tooltip)
+                attribute, tooltip = self.parseGraphicTooltip(attribute, tooltip)
             elif iidName == "IID_IGraphicLineAttributes":
-                self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
+                attribute, outline, lineSize, lineStyle = self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
             elif iidName == "IID_IGraphicDimmAttributes":
-                self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
+                attribute, dimmColor, dimmFactor = self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
             elif iidName == "IID_IGraphicRoundable":
-                self.parseGraphicRoundable(attribute, roundable)
+                attribute, roundable = self.parseGraphicRoundable(attribute, roundable)
             elif iidName == "IID_IGraphicCloseable":
-                self.parseGraphicCloseable(attribute, closeable)
+                attribute, closeable = self.parseGraphicCloseable(attribute, closeable)
 
             attribute = attribute.nextSiblingElement("attribute")
 
-        self.applyDimm(dimmFactor, dimmColor, outline)
+        dimmFactor, dimmColor, outline, _ = self.applyDimm(dimmFactor, dimmColor, outline)
 
         line = QgsLineStringV2()
         line.setPoints(points)
@@ -328,33 +337,34 @@ class QgsVBSOvlImporter(QObject):
         while not attribute.isNull():
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
-                self.parseGraphic(attribute, points)
+                attribute, points = self.parseGraphic(attribute, points)
             elif iidName == "IID_IGraphicTooltip":
-                self.parseGraphicTooltip(attribute, tooltip)
+                attribute, tooltip = self.parseGraphicTooltip(attribute, tooltip)
             elif iidName == "IID_IGraphicLineAttributes":
-                self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
+                attribute, outline, lineSize, lineStyle = self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
             elif iidName == "IID_IGraphicFillAttributes":
-                self.parseGraphicFillAttributes(attribute, fill, fillStyle)
+                attribute, fill, fillStyle = self.parseGraphicFillAttributes(attribute, fill, fillStyle)
             elif iidName == "IID_IGraphicDimmAttributes":
-                self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
+                attribute, dimmColor, dimmFactor = self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
             elif iidName == "IID_IGraphicRoundable":
-                self.parseGraphicRoundable(attribute, roundable)
+                attribute, roundable = self.parseGraphicRoundable(attribute, roundable)
 
             attribute = attribute.nextSiblingElement("attribute")
 
-        self.applyDimm(dimmFactor, dimmColor, outline, fill)
+        dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
 
         # TODO: roundable
         poly = QgsPolygonV2()
         ring = QgsLineStringV2()
         ring.setPoints(points)
-        ring.addVertex(points.first())
+        ring.addVertex(points[0])
         poly.setExteriorRing(ring)
 
         self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "", tooltip)
 
     def parseText(self, object):
-        text, tooltip = ""
+        text = ""
+        tooltip = ""
         font = QFont()
         color = QColor()
         dimmColor = QColor()
@@ -362,40 +372,121 @@ class QgsVBSOvlImporter(QObject):
         height = 0.0
         rotation = 0.0
         dimmFactor = 0.0
+        whu = 0
 
         attribute = object.firstChildElement("attributeList").firstChildElement("attribute")
         while not attribute.isNull():
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
                 points = []
+                attribute, points = self.parseGraphic(attribute, points)
+                if points:
+                    point = points[0]
+            elif iidName == "IID_IGraphicTooltip":
+                attribute, tooltip = self.parseGraphicTooltip(attribute, tooltip)
+# These are in the spec but make little sense
+# else if(iidName == "IID_IGraphicLineAttributes")
+#   self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle);
+# else if(iidName == "IID_IGraphicFillAttributes")
+#   self.parseGraphicFillAttributes(attribute, fill, fillStyle);
+            elif iidName == "IID_IGraphicDimmAttributes":
+                attribute, dimmColor, dimmFactor = self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
+            elif iidName == "IID_IGraphicSinglePointAttributes":
+                attribute, width, height, rotation = self.parseGraphicSinglePointAttributes(attribute, width, height, rotation)
+            elif iidName == "IID_IGraphicWHUSetable":
+                attribute, whu = self.parseGraphicWHUSetable(attribute, whu)
+            elif iidName == "IID_IGraphicTextAttributes":
+                attribute, text, color, font = self.parseGraphicTextAttributes(attribute, text, color, font)
+
+            attribute = attribute.nextSiblingElement("attribute")
+
+        dimmFactor, dimmColor, color, _ = self.applyDimm(dimmFactor, dimmColor, color)
+
+        self.iface.redliningLayer().addText(text, point, color, font, tooltip, rotation)
+
+    def parseCopexLine(self, object):
+        points = []
+        lineSize = 1
+        lineStyle = Qt.SolidLine
+        outline = QColor()
+        dimmColor = QColor()
+        dimmFactor = 0.
+        roundable = False
+        closeable = False
+        mssxml = ""
+
+        attribute = object.firstChildElement("attributeList").firstChildElement("attribute")
+        while not attribute.isNull():
+            iidName = attribute.attribute("iidName")
+            if iidName == "IID_IGraphic":
+                attribute, points = self.parseGraphic(attribute, points)
+            elif iidName == "IID_IGraphicLineAttributes":
+                attribute, outline, lineSize, lineStyle = self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
+            elif iidName == "IID_IGraphicFillAttributes":
+                attribute, fill, fillStyle = self.parseGraphicFillAttributes(attribute, fill, fillStyle)
+            elif iidName == "IID_IGraphicDimmAttributes":
+                attribute, dimmColor, dimmFactor = self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
+            elif iidName == "IID_IGraphicRoundable":
+                attribute, roundable = self.parseGraphicRoundable(attribute, roundable)
+            elif iidName == "IID_IGraphicCloseable":
+                attribute, closeable = self.parseGraphicCloseable(attribute, closeable)
+
+            attribute = attribute.nextSiblingElement("attribute")
+
+        copexobject = object.firstChildElement("attributeList").firstChildElement("COPExObject")
+        if copexobject:
+            iidName = copexobject.attribute("iidName")
+            if iidName == "IID_ICOPExObject":
+                copexobject, mssxml = self.parseCopex(copexobject, mssxml)
+
+        dimmFactor, dimmColor, outline, _ = self.applyDimm(dimmFactor, dimmColor, outline)
+
+    def parseCopexSign(self, object):
+        points = []
+        width = 0.0
+        height = 0.0
+        rotation = 0.0
+        dimmFactor = 0.0
+        lineSize = 1
+        lineStyle = Qt.SolidLine
+        fillStyle = Qt.SolidPattern
+        outline = QColor()
+        fill = QColor()
+        dimmColor = QColor()
+        tooltip = ""
+        mssxml = ""
+
+        attribute = object.firstChildElement("attributeList").firstChildElement("attribute")
+        while not attribute.isNull():
+            iidName = attribute.attribute("iidName")
+            if iidName == "IID_IGraphic":
                 self.parseGraphic(attribute, points)
-                if not points.isEmpty():
-                    point = points.first()
-                elif iidName == "IID_IGraphicTooltip":
-                    self.parseGraphicTooltip(attribute, tooltip)
-    # These are in the spec but make little sense
-    # else if(iidName == "IID_IGraphicLineAttributes")
-    #   self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle);
-    # else if(iidName == "IID_IGraphicFillAttributes")
-    #   self.parseGraphicFillAttributes(attribute, fill, fillStyle);
-                elif iidName == "IID_IGraphicDimmAttributes":
-                    self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
-                elif iidName == "IID_IGraphicSinglePointAttributes":
-                    self.parseGraphicSinglePointAttributes(attribute, width, height, rotation)
-                elif iidName == "IID_IGraphicWHUSetable":
-                    self.parseGraphicWHUSetable(attribute, whu)
-                elif iidName == "IID_IGraphicTextAttributes":
-                    self.parseGraphicTextAttributes(attribute, text, color, font)
+            elif iidName == "IID_IGraphicTooltip":
+                attribute, tooltip = self.parseGraphicTooltip(attribute, tooltip)
+            elif (iidName == "IID_IGraphicLineAttributes"):
+                attribute, outline, lineSize, lineStyle = self.parseGraphicLineAttributes(attribute, outline, lineSize, lineStyle)
+            elif iidName == "IID_IGraphicFillAttributes":
+                attribute, fill, fillStyle = self.parseGraphicFillAttributes(attribute, fill, fillStyle)
+            elif iidName == "IID_IGraphicDimmAttributes":
+                attribute, dimmColor, dimmFactor = self.parseGraphicDimmAttributes(attribute, dimmColor, dimmFactor)
+            elif iidName == "IID_IGraphicSinglePointAttributes":
+                attribute, width, height, rotation = self.parseGraphicSinglePointAttributes(attribute, width, height, rotation)
 
-                attribute = attribute.nextSiblingElement("attribute")
+            attribute = attribute.nextSiblingElement("attribute")
 
-            self.applyDimm(dimmFactor, dimmColor, color)
+        copexobject = object.firstChildElement("attributeList").firstChildElement("COPExObject")
+        if copexobject:
+            iidName = copexobject.attribute("iidName")
+            if iidName == "IID_ICOPExObject":
+                copexobject, mssxml = self.parseCopex(copexobject, mssxml)
 
-            self.iface.redliningLayer().addText(text, point, color, font, tooltip, rotation)
+        dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
 
-    def parseCopex(self, object, clsid):
-        byte_data_value = object.attribute("ByteArray")
-        OverlayConverter.read_copex(clsid, byte_data_value)
+    def parseCopex(self, copexobject, mssxml):
+        byte_data_value = copexobject.firstChildElement("ByteArray").attribute("Value")
+        clsid = copexobject.attribute("clsid")
+        mssxml = OverlayConverter.read_copex(clsid, byte_data_value)
+        return copexobject, mssxml
 
     def ConvertLineStyle(self, lineStyle):
         if lineStyle == 0:
@@ -411,7 +502,7 @@ class QgsVBSOvlImporter(QObject):
         else:
             return Qt.SolidLine
 
-    def convertFillStyle(fillStyle):
+    def convertFillStyle(self, fillStyle):
         if fillStyle == 0:
             return Qt.NoBrush
         elif fillStyle == 1:

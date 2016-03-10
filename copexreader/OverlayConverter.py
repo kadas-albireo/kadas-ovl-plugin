@@ -1,5 +1,6 @@
 import zipfile
 import os
+import sys
 from xml.dom import minidom
 from OvlReader.copexreader.COPEx import *
 from MultiSymbolConverter import MultiSymbolConverterAXXI, MultiSymbolConverterBABS
@@ -65,6 +66,7 @@ def read_copex(clsid, byte_data_value):
     global symbol_count
 
     byte_data = bytearray.fromhex(byte_data_value)
+    # print byte_data.decode("utf-8")
 
     copex_obj = None
     if clsid == APP6aObject.CLSID:
@@ -92,16 +94,19 @@ def read_copex(clsid, byte_data_value):
 
         if symbol_def is not None:
             mapping_found += 1
+            print symbol_def
+            # print COPExObject2MSSConverter.get_mms_string(symbol_def)
             # print(symbol_def)
             # print("MSS-Lib XML String: " + COPExObject2MSSConverter.get_mms_string(symbol_def))
-            print(copex_obj.get_symbol_string() +
-                  "\t" + COPExObject2MSSConverter.get_mms_string(symbol_def) +
-                  "\t" + get_image_name(copex_obj.get_symbol_string()))
+            # print(copex_obj.get_symbol_string() +
+            #       "\t" + COPExObject2MSSConverter.get_mms_string(symbol_def) +
+            #       "\t" + get_image_name(copex_obj.get_symbol_string()))
         else:
+            pass
             # print("Conversion failed : " + copex_obj.get_symbol_string())
-            print(copex_obj.get_symbol_string() +
-                  "\t" +
-                  "\t" + get_image_name(copex_obj.get_symbol_string()))
+            # print(copex_obj.get_symbol_string() +
+            #       "\t" +
+            #       "\t" + get_image_name(copex_obj.get_symbol_string()))
 
 
 def main():

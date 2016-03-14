@@ -104,12 +104,19 @@ class QgsVBSOvlImporter(QObject):
         self.iface.mapCanvas().refresh()
         QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("{cnt} features were imported.").format(cnt=count))
 
-    def parseGraphic(self, attribute, points):
+    def parseGraphic(self, attribute, points, crs=4326):
         coord = attribute.firstChildElement("coordList").firstChildElement("coord")
+        transform = None
+        if crs != 4326:
+            transform = QgsCoordinateTransform(4326, crs)
         while not coord.isNull():
             x = float(coord.attribute("x"))
             y = float(coord.attribute("y"))
-            points.append(QgsPointV2(x, y))
+            if transform:
+                p = transform.transform(x, y)
+                points.append(QgsPointV2(p.x(), p.y()))
+            else:
+                points.append(QgsPointV2(x, y))
             coord = coord.nextSiblingElement("coord")
         return attribute, points
 
@@ -218,7 +225,7 @@ class QgsVBSOvlImporter(QObject):
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
                 points = []
-                self.parseGraphic(attribute, points)
+                self.parseGraphic(attribute, points, 3857)
                 if points:
                     point = points[0]
             elif iidName == "IID_IGraphicTooltip":
@@ -299,7 +306,7 @@ class QgsVBSOvlImporter(QObject):
         while not attribute.isNull():
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
-                attribute, points = self.parseGraphic(attribute, points)
+                attribute, points = self.parseGraphic(attribute, points, 3857)
             elif iidName == "IID_IGraphicDelimiter":
                 attribute, startDelimiter, endDelimiter = self.parseGraphicDelimiter(attribute, startDelimiter, endDelimiter)
             elif iidName == "IID_IGraphicTooltip":
@@ -341,7 +348,7 @@ class QgsVBSOvlImporter(QObject):
         while not attribute.isNull():
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
-                attribute, points = self.parseGraphic(attribute, points)
+                attribute, points = self.parseGraphic(attribute, points, 3857)
             elif iidName == "IID_IGraphicTooltip":
                 attribute, tooltip = self.parseGraphicTooltip(attribute, tooltip)
             elif iidName == "IID_IGraphicLineAttributes":
@@ -383,7 +390,7 @@ class QgsVBSOvlImporter(QObject):
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
                 points = []
-                attribute, points = self.parseGraphic(attribute, points)
+                attribute, points = self.parseGraphic(attribute, points, 3857)
                 if points:
                     point = points[0]
             elif iidName == "IID_IGraphicTooltip":

@@ -94,13 +94,11 @@ def read_copex(clsid, byte_data_value):
 
         if symbol_def is not None:
             mapping_found += 1
-            print symbol_def
             # print COPExObject2MSSConverter.get_mms_string(symbol_def)
             # print(symbol_def)
             # print("MSS-Lib XML String: " + COPExObject2MSSConverter.get_mms_string(symbol_def))
-            # print(copex_obj.get_symbol_string() +
-            #       "\t" + COPExObject2MSSConverter.get_mms_string(symbol_def) +
-            #       "\t" + get_image_name(copex_obj.get_symbol_string()))
+            return (COPExObject2MSSConverter.get_mms_string(symbol_def))
+
         else:
             pass
             # print("Conversion failed : " + copex_obj.get_symbol_string())

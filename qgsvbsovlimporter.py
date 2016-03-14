@@ -22,6 +22,7 @@ from PyQt4.QtGui import *
 from qgis.gui import *
 from qgis.core import *
 from PyQt4.QtXml import *
+from qgis.vbs import *
 import zipfile
 
 
@@ -35,6 +36,7 @@ class QgsVBSOvlImporter(QObject):
 
     def import_ovl(self, filename, iface):
         self.iface = iface
+        self.milix_layer = QgsVBSMilixLayer()
         if not filename:
             lastProjectDir = QSettings().value("/UI/lastProjectDir", ".")
             filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File"), lastProjectDir, self.tr("OVL Files (*.ovl);;"))
@@ -96,6 +98,8 @@ class QgsVBSOvlImporter(QObject):
             object = object.nextSiblingElement("object")
         # TODO: Ist das der richtige Weg?
         # self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
+        if self.milix_layer.items():
+            QgsMapLayerRegistry.instance().addMapLayer(self.milix_layer)
         self.iface.mapCanvas().clearCache()
         self.iface.mapCanvas().refresh()
         QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("{cnt} features were imported.").format(cnt=count))
@@ -440,6 +444,12 @@ class QgsVBSOvlImporter(QObject):
                 copexobject, mssxml = self.parseCopex(copexobject, mssxml)
 
         dimmFactor, dimmColor, outline, _ = self.applyDimm(dimmFactor, dimmColor, outline)
+        v1points = []
+        for p in points:
+            v1points.append(QgsPoint(p.x(), p.y()))
+        milix_item = QgsVBSMilixItem()
+        milix_item.initialize(mssxml, "", v1points, [], QPoint(), True)
+        self.milix_layer.addItem(milix_item)
 
     def parseCopexSign(self, object):
         points = []
@@ -460,7 +470,7 @@ class QgsVBSOvlImporter(QObject):
         while not attribute.isNull():
             iidName = attribute.attribute("iidName")
             if iidName == "IID_IGraphic":
-                self.parseGraphic(attribute, points)
+                attribute, points = self.parseGraphic(attribute, points)
             elif iidName == "IID_IGraphicTooltip":
                 attribute, tooltip = self.parseGraphicTooltip(attribute, tooltip)
             elif (iidName == "IID_IGraphicLineAttributes"):
@@ -481,12 +491,22 @@ class QgsVBSOvlImporter(QObject):
                 copexobject, mssxml = self.parseCopex(copexobject, mssxml)
 
         dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
+        v1points = []
+        for p in points:
+            v1points.append(QgsPoint(p.x(), p.y()))
+        milix_item = QgsVBSMilixItem()
+        milix_item.initialize(mssxml, '', v1points, [], QPoint(), True)
+        if mssxml and v1points:
+            self.milix_layer.addItem(milix_item)
 
     def parseCopex(self, copexobject, mssxml):
         byte_data_value = copexobject.firstChildElement("ByteArray").attribute("Value")
         clsid = copexobject.attribute("clsid")
         mssxml = OverlayConverter.read_copex(clsid, byte_data_value)
-        return copexobject, mssxml
+        if mssxml:
+            return copexobject, mssxml
+        else:
+            return copexobject, None
 
     def ConvertLineStyle(self, lineStyle):
         if lineStyle == 0:

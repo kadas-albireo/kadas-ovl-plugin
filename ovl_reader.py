@@ -68,12 +68,10 @@ class OvlReader(QObject):
         if ovlAction:
             ovlAction.triggered.connect(self.__importOVL)
         else:
-            self.toolButton = QToolButton(self.iface.pluginToolBar())
-            self.toolButton.setIcon(QIcon(":/plugins/OvlReader/icon.png"))
-            self.toolButton.setText(self.tr("OVL Import"))
-            self.toolButton.setToolTip(self.tr("OVL Import"))
-            self.toolAction = self.iface.pluginToolBar().addWidget(self.toolButton)
-            self.toolButton.toggled.connect(self.__importOVL)
+            self.toolAction = QAction(QIcon(":/plugins/OvlReader/icon.png"), self.tr("OVL Import"), self.iface.pluginToolBar())
+            self.toolAction.setToolTip(self.tr("OVL Import"))
+            self.iface.pluginToolBar().addAction(self.toolAction)
+            self.toolAction.triggered.connect(self.__importOVL)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""

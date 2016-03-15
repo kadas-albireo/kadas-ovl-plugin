@@ -454,15 +454,15 @@ class QgsVBSOvlImporter(QObject):
         if copexobject:
             iidName = copexobject.attribute("iidName")
             if iidName == "IID_ICOPExObject":
-                copexobject, mssxml = self.parseCopex(copexobject, mssxml)
+                copexobject, mssxml = self.parseCopex(copexobject)
 
         dimmFactor, dimmColor, outline, _ = self.applyDimm(dimmFactor, dimmColor, outline)
         v1points = []
         for p in points:
             v1points.append(QgsPoint(p.x(), p.y()))
-        milix_item = QgsVBSMilixItem()
-        milix_item.initialize(mssxml, "", v1points, [], QPoint(), True)
         if mssxml and v1points:
+            milix_item = QgsVBSMilixItem()
+            milix_item.initialize(mssxml, "", v1points, [], QPoint(), True)
             self.milix_layer.addItem(milix_item)
             return True
         return False
@@ -504,27 +504,24 @@ class QgsVBSOvlImporter(QObject):
         if copexobject:
             iidName = copexobject.attribute("iidName")
             if iidName == "IID_ICOPExObject":
-                copexobject, mssxml = self.parseCopex(copexobject, mssxml)
+                copexobject, mssxml = self.parseCopex(copexobject)
 
         dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
         v1points = []
         for p in points:
             v1points.append(QgsPoint(p.x(), p.y()))
-        milix_item = QgsVBSMilixItem()
-        milix_item.initialize(mssxml, '', v1points, [], QPoint(), True)
         if mssxml and v1points:
+            milix_item = QgsVBSMilixItem()
+            milix_item.initialize(mssxml, '', v1points, [], QPoint(), True)
             self.milix_layer.addItem(milix_item)
             return True
         return False
 
-    def parseCopex(self, copexobject, mssxml):
+    def parseCopex(self, copexobject):
         byte_data_value = copexobject.firstChildElement("ByteArray").attribute("Value")
         clsid = copexobject.attribute("clsid")
         mssxml = OverlayConverter.read_copex(clsid, byte_data_value)
-        if mssxml:
-            return copexobject, mssxml
-        else:
-            return copexobject, None
+        return copexobject, mssxml
 
     def ConvertLineStyle(self, lineStyle):
         if lineStyle == 0:

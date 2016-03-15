@@ -75,7 +75,7 @@ class OvlReader(QObject):
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
-        if hasattr(self, 'toolButton'):
+        if self.toolAction:
             self.iface.pluginToolBar().removeAction(self.toolAction)
 
     def __importOVL(self):

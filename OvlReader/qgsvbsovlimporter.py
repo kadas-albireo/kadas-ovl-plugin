@@ -59,9 +59,12 @@ class QgsVBSOvlImporter(QObject):
         objectList = doc.firstChildElement("geogridOvl").firstChildElement("objectList")
         object = objectList.firstChildElement("object")
         count = 0
-        errors = 0
+        mappingErrors = []
+        mssErrors = []
         while not object.isNull():
             clsid = object.attribute("clsid")
+            uid = object.attribute("uid")
+            clsname = object.attribute("clsName")
             if clsid == "{352CC905-847C-403A-8EE1-C991C86CCE58}":  # Overlay
                 pass  # TODO ??
             elif clsid == "{F848EC6F-7105-4C54-9CC1-520E6D38549A}":  # Group
@@ -90,25 +93,47 @@ class QgsVBSOvlImporter(QObject):
                 pass
             elif clsid == "{06D46883-9097-4F0A-AE96-95E0BB375DE1}":
                 result = self.parseCopexLine(object)
-                if result:
+                if result[0]:
                     count += 1
+                elif result[1]:
+                    mssErrors.append("%s: %s" % (result[1], result[2]))
                 else:
-                    errors += 1
+                    mappingErrors.append("uid: %s, clsid: %s" % (uid, clsid))
             elif clsid == "{A5EC4300-889F-4511-92B6-B34C26299F5E}":
                 result = self.parseCopexSign(object)
-                if result:
+                if result[0]:
                     count += 1
+                elif result[1]:
+                    mssErrors.append("%s: %s" % (result[1], result[2]))
                 else:
-                    errors += 1
+                    mappingErrors.append("uid: %s, clsName: %s" % (uid, clsname))
             else:
-                qDebug("Unhandled clsid {cls}".format(cls=clsid))
+                mappingErrors.append("uid: %s, clsName: %s" % (uid, clsname))
 
             object = object.nextSiblingElement("object")
         if self.milix_layer.items():
             QgsMapLayerRegistry.instance().addMapLayer(self.milix_layer)
         self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
         self.iface.mapCanvas().refresh()
-        QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("{cnt} features were imported.\n{err} features could not be imported.").format(cnt=count, err=errors))
+        dialog = QDialog()
+        dialog.setWindowTitle(self.tr("Import completed"))
+        dialog.setLayout(QVBoxLayout())
+        dialog.layout().addWidget(QLabel(self.tr("{cnt} features were imported").format(cnt=count)))
+        if mappingErrors:
+            dialog.layout().addWidget(QLabel(self.tr("The following objects could not be converted:")))
+            edit = QPlainTextEdit("\n".join(mappingErrors))
+            edit.setReadOnly(True)
+            dialog.layout().addWidget(edit)
+        if mssErrors:
+            dialog.layout().addWidget(QLabel(self.tr("The MSS symbols did not pass validation:")))
+            edit = QPlainTextEdit("\n".join(mssErrors))
+            edit.setReadOnly(True)
+            dialog.layout().addWidget(edit)
+        bbox = QDialogButtonBox(QDialogButtonBox.Close)
+        bbox.accepted.connect(dialog.accept)
+        bbox.rejected.connect(dialog.reject)
+        dialog.layout().addWidget(bbox)
+        dialog.exec_()
 
     def parseGraphic(self, attribute, points, crs="EPSG:4326"):
         coord = attribute.firstChildElement("coordList").firstChildElement("coord")
@@ -461,11 +486,14 @@ class QgsVBSOvlImporter(QObject):
         for p in points:
             v1points.append(QgsPoint(p.x(), p.y()))
         if mssxml and v1points:
+            (valid, adjmssxml, messages) = QgsVBSMilixItem.validateMssString(mssxml)
+            if not valid:
+                return (False, mssxml, messages)
             milix_item = QgsVBSMilixItem()
-            milix_item.initialize(mssxml, "", v1points, [], QPoint(), True)
+            milix_item.initialize(adjmssxml, "", v1points, [], QPoint(), True)
             self.milix_layer.addItem(milix_item)
-            return True
-        return False
+            return (True, "")
+        return (False, "")
 
     def parseCopexSign(self, object):
         points = []
@@ -511,11 +539,14 @@ class QgsVBSOvlImporter(QObject):
         for p in points:
             v1points.append(QgsPoint(p.x(), p.y()))
         if mssxml and v1points:
+            (valid, adjmssxml, messages) = QgsVBSMilixItem.validateMssString(mssxml)
+            if not valid:
+                return (False, mssxml, messages)
             milix_item = QgsVBSMilixItem()
-            milix_item.initialize(mssxml, '', v1points, [], QPoint(), True)
+            milix_item.initialize(adjmssxml, '', v1points, [], QPoint(), True)
             self.milix_layer.addItem(milix_item)
-            return True
-        return False
+            return (True, "")
+        return (False, "")
 
     def parseCopex(self, copexobject):
         byte_data_value = copexobject.firstChildElement("ByteArray").attribute("Value")

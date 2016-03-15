@@ -108,7 +108,7 @@ class QgsVBSOvlImporter(QObject):
             QgsMapLayerRegistry.instance().addMapLayer(self.milix_layer)
         self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
         self.iface.mapCanvas().refresh()
-        QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("{cnt} features were imported.\n{err} features failed to import.").format(cnt=count, err=errors))
+        QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("{cnt} features were imported.\n{err} features could not be imported.").format(cnt=count, err=errors))
 
     def parseGraphic(self, attribute, points, crs="EPSG:4326"):
         coord = attribute.firstChildElement("coordList").firstChildElement("coord")

@@ -46,7 +46,6 @@ class QgsVBSOvlImporter(QObject):
 
                 QSettings().setValue("/UI/lastProjectDir", finfo.absolutePath())
 
-        # TODO: quazip gibt es in Python nicht, umweg muss gesucht werden
         zf = zipfile.ZipFile(filename)
         file_list = zf.namelist()
         # geogrid(filename, "geogrid50.xml")
@@ -105,11 +104,9 @@ class QgsVBSOvlImporter(QObject):
                 qDebug("Unhandled clsid {cls}".format(cls=clsid))
 
             object = object.nextSiblingElement("object")
-        # TODO: Ist das der richtige Weg?
-        # self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
         if self.milix_layer.items():
             QgsMapLayerRegistry.instance().addMapLayer(self.milix_layer)
-        self.iface.mapCanvas().clearCache()
+        self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
         self.iface.mapCanvas().refresh()
         QMessageBox.information(self.iface.mainWindow(), self.tr("OVL Import"), self.tr("{cnt} features were imported.\n{err} features failed to import.").format(cnt=count, err=errors))
 

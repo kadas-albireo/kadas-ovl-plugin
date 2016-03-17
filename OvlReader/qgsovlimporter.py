@@ -36,7 +36,7 @@ class QgsOvlImporter(QObject):
 
     def import_ovl(self, filename, iface):
         self.iface = iface
-        self.milx_layer = QgsMilxLayer()
+        self.milx_layer = QgsMilXLayer()
         if not filename:
             lastProjectDir = QSettings().value("/UI/lastProjectDir", ".")
             filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File"), lastProjectDir, self.tr("OVL Files (*.ovl);;"))

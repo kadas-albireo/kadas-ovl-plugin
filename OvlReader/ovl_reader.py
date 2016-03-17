@@ -25,7 +25,7 @@ from PyQt4.QtGui import *
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
-from qgsvbsovlimporter import QgsVBSOvlImporter
+from qgsovlimporter import QgsOvlImporter
 import os.path
 
 
@@ -85,5 +85,5 @@ class OvlReader(QObject):
         if not finfo.exists():
             return
 
-        importer = QgsVBSOvlImporter()
+        importer = QgsOvlImporter()
         importer.import_ovl(filename, self.iface)

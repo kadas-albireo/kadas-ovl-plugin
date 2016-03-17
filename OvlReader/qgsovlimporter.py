@@ -1,5 +1,5 @@
 ###########################################################################
-#  qgsvbsovlimporter.cpp                                                  #
+#  qgsovlimporter.cpp                                                     #
 #  -------------------                                                    #
 #  begin                : Oct 07, 2015                                    #
 #  copyright            : (C) 2015 by Sandro Mani / Sourcepole AG         #
@@ -22,11 +22,11 @@ from PyQt4.QtGui import *
 from qgis.gui import *
 from qgis.core import *
 from PyQt4.QtXml import *
-from qgis.vbs import *
+from qgis.milx import *
 import zipfile
 
 
-class QgsVBSOvlImporter(QObject):
+class QgsOvlImporter(QObject):
 
     MapPixels, ScreenPixels, Meters = range(1, 4)
     NoDelimiter, OutArrowDelimiter, InArrowDelimiter, MeasureDelimiter, EmptyCircleDelimiter, FilledCircleDelimiter = range(1, 7)
@@ -36,7 +36,7 @@ class QgsVBSOvlImporter(QObject):
 
     def import_ovl(self, filename, iface):
         self.iface = iface
-        self.milix_layer = QgsVBSMilixLayer()
+        self.milx_layer = QgsMilxLayer()
         if not filename:
             lastProjectDir = QSettings().value("/UI/lastProjectDir", ".")
             filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File"), lastProjectDir, self.tr("OVL Files (*.ovl);;"))
@@ -111,8 +111,8 @@ class QgsVBSOvlImporter(QObject):
                 mappingErrors.append("uid: %s, clsName: %s" % (uid, clsname))
 
             object = object.nextSiblingElement("object")
-        if self.milix_layer.items():
-            QgsMapLayerRegistry.instance().addMapLayer(self.milix_layer)
+        if self.milx_layer.items():
+            QgsMapLayerRegistry.instance().addMapLayer(self.milx_layer)
         self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
         self.iface.mapCanvas().refresh()
         dialog = QDialog()
@@ -488,12 +488,12 @@ class QgsVBSOvlImporter(QObject):
         for p in points:
             v1points.append(QgsPoint(p.x(), p.y()))
         if mssxml and v1points:
-            (valid, adjmssxml, messages) = QgsVBSMilixItem.validateMssString(mssxml)
+            (valid, adjmssxml, messages) = QgsMilXItem.validateMssString(mssxml)
             if not valid:
                 return (False, mssxml, messages)
-            milix_item = QgsVBSMilixItem()
-            milix_item.initialize(adjmssxml, "", v1points, [], QPoint(), True)
-            self.milix_layer.addItem(milix_item)
+            milx_item = QgsMilXItem()
+            milx_item.initialize(adjmssxml, "", v1points, [], QPoint(), True)
+            self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")
 
@@ -541,12 +541,12 @@ class QgsVBSOvlImporter(QObject):
         for p in points:
             v1points.append(QgsPoint(p.x(), p.y()))
         if mssxml and v1points:
-            (valid, adjmssxml, messages) = QgsVBSMilixItem.validateMssString(mssxml)
+            (valid, adjmssxml, messages) = QgsMilXItem.validateMssString(mssxml)
             if not valid:
                 return (False, mssxml, messages)
-            milix_item = QgsVBSMilixItem()
-            milix_item.initialize(adjmssxml, '', v1points, [], QPoint(), True)
-            self.milix_layer.addItem(milix_item)
+            milx_item = QgsMilXItem()
+            milx_item.initialize(adjmssxml, '', v1points, [], QPoint(), True)
+            self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")
 

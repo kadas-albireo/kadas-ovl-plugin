@@ -191,7 +191,7 @@ class QgsVBSOvlImporter(QObject):
     def parseGraphicSinglePointAttributes(self, attribute, width, height, rotation):
         height = float(attribute.firstChildElement("height").text())
         width = float(attribute.firstChildElement("width").text())
-        rotation = float(attribute.firstChildElement("rotation").text())
+        rotation = -(float(attribute.firstChildElement("rotation").text()))
         return attribute, width, height, rotation
 
     def parseGraphicWHUSetable(self, attribute, whu):
@@ -290,6 +290,7 @@ class QgsVBSOvlImporter(QObject):
                     QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
                     QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
             elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
+                rotation += 90
                 ring = QgsLineStringV2()
                 ring.setPoints([
                     QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
@@ -313,6 +314,7 @@ class QgsVBSOvlImporter(QObject):
             if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
                 shape = "rectangle"
             elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
+                rotation += 90
                 shape = "triangle"
             elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
                 shape = "circle"

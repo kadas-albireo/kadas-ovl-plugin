@@ -47,11 +47,15 @@ class QgsOvlImporter(QObject):
 
                 QSettings().setValue("/UI/lastProjectDir", finfo.absolutePath())
 
-        zf = zipfile.ZipFile(filename)
-        file_list = zf.namelist()
+        file_list = []
+        try:
+            zf = zipfile.ZipFile(filename)
+            file_list = zf.namelist()
+        except:
+            pass
         # geogrid(filename, "geogrid50.xml")
         if 'geogrid50.xml' not in file_list:
-            MessageBox.warning(self.iface.mainWindow(), self.tr("Error"), self.tr("Cannot open file for reading:  {fn}").format(fn=QFileInfo(filename).fileName()))
+            QMessageBox.warning(self.iface.mainWindow(), self.tr("Error"), self.tr("The file does not appear to be a valid OVL file:  {fn}").format(fn=QFileInfo(filename).fileName()))
             return
 
         geogrid = zf.read('geogrid50.xml')

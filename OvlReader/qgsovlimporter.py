@@ -36,7 +36,6 @@ class QgsOvlImporter(QObject):
 
     def import_ovl(self, filename, iface):
         self.iface = iface
-        print iface.layerTreeView().menuProvider()
         self.milx_layer = QgsMilXLayer(iface)
         if not filename:
             lastProjectDir = QSettings().value("/UI/lastProjectDir", ".")
@@ -66,7 +65,23 @@ class QgsOvlImporter(QObject):
         count = 0
         mappingErrors = []
         mssErrors = []
+
+        # First pass: count
+        totCount = 0
         while not object.isNull():
+            totCount += 1
+            object = object.nextSiblingElement("object")
+
+        progdialog = QProgressDialog(self.tr("Importing OVL..."), self.tr("Cancel"), 0, totCount, iface.mainWindow())
+        progdialog.setWindowTitle(self.tr("OVL Import"))
+        progdialog.show()
+        progdialog.rejected.connect(progdialog.cancel)
+        progdialog.setCancelButton(None)
+        counter = 0
+        object = objectList.firstChildElement("object")
+        while not object.isNull():
+            counter += 1
+            progdialog.setValue(counter)
             clsid = object.attribute("clsid")
             uid = object.attribute("uid")
             clsname = object.attribute("clsName")

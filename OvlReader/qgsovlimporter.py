@@ -466,7 +466,7 @@ class QgsOvlImporter(QObject):
 
         dimmFactor, dimmColor, color, _ = self.applyDimm(dimmFactor, dimmColor, color)
 
-        self.iface.redliningLayer().addText(text, point, color, font, tooltip, rotation)
+        self.iface.redliningLayer().addText(text, point, color, font, tooltip, -rotation)
 
     def parseCopexLine(self, object):
         points = []
@@ -501,8 +501,10 @@ class QgsOvlImporter(QObject):
         if copexobject:
             iidName = copexobject.attribute("iidName")
             if iidName == "IID_ICOPExObject":
-                copexobject, mssxml = self.parseCopex(copexobject)
+                copexobject, mssxml, reversePoints = self.parseCopex(copexobject)
 
+        if reversePoints:
+            points.reverse()
         dimmFactor, dimmColor, outline, _ = self.applyDimm(dimmFactor, dimmColor, outline)
         v1points = []
         for p in points:
@@ -512,7 +514,7 @@ class QgsOvlImporter(QObject):
             if not valid:
                 return (False, mssxml, messages)
             milx_item = QgsMilXItem()
-            milx_item.initialize(adjmssxml, "", v1points, [], QPoint(), True)
+            milx_item.initialize(adjmssxml, "", v1points, [], QPoint(), QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
             self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")
@@ -554,8 +556,10 @@ class QgsOvlImporter(QObject):
         if copexobject:
             iidName = copexobject.attribute("iidName")
             if iidName == "IID_ICOPExObject":
-                copexobject, mssxml = self.parseCopex(copexobject)
+                copexobject, mssxml, reversePoints = self.parseCopex(copexobject)
 
+        if reversePoints:
+            points.reverse()
         dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
         v1points = []
         for p in points:
@@ -565,7 +569,7 @@ class QgsOvlImporter(QObject):
             if not valid:
                 return (False, mssxml, messages)
             milx_item = QgsMilXItem()
-            milx_item.initialize(adjmssxml, '', v1points, [], QPoint(), True)
+            milx_item.initialize(adjmssxml, '', v1points, [], QPoint(), QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
             self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")
@@ -573,8 +577,8 @@ class QgsOvlImporter(QObject):
     def parseCopex(self, copexobject):
         byte_data_value = copexobject.firstChildElement("ByteArray").attribute("Value")
         clsid = copexobject.attribute("clsid")
-        mssxml = OverlayConverter.read_copex(clsid, byte_data_value)
-        return copexobject, mssxml
+        mssxml, reversePoints = OverlayConverter.read_copex(clsid, byte_data_value)
+        return copexobject, mssxml, reversePoints
 
     def ConvertLineStyle(self, lineStyle):
         if lineStyle == 0:

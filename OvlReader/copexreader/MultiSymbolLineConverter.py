@@ -23,6 +23,9 @@ class MultiSymbolLineConverter(COPExObject2MSSConverter):
         """
         Returns always a string with no spaces
         """
+        if type(string) is float:
+            string = str(int(string))
+
         if string is not None:
             return str(string).replace(" ", "")
 
@@ -53,11 +56,11 @@ class MultiSymbolLineConverter(COPExObject2MSSConverter):
                 self._get_safe_string(sheet.cell(row, 0).value),   # 0 LINIENART-BASISTYP
                 self._get_safe_string(sheet.cell(row, 1).value),   # 1 LINIENOBJ(0)-KOMPONENTENNAME
                 self._get_safe_string(sheet.cell(row, 2).value),   # 2 LINIENOBJ(0)-OBJEKTTYP
-                self._get_safe_string(sheet.cell(row, 3).value),   # 3 LINIENOBJ(0)-OBJEKTINHALT
+                self._get_safe_string(sheet.cell(row, 3).value).replace(' ', '').replace(';', ''),   # 3 LINIENOBJ(0)-OBJEKTINHALT
                 self._get_safe_string(sheet.cell(row, 4).value),   # 4 LINIENOBJ(0)-OBJECTID
                 self._get_safe_string(sheet.cell(row, 5).value),   # 5 LINIENOBJ(1)-KOMPONENTENNAME
                 self._get_safe_string(sheet.cell(row, 6).value),   # 6 LINIENOBJ(1)-OBJEKTTYP
-                self._get_safe_string(sheet.cell(row, 7).value),   # 7 LINIENOBJ(1)-OBJEKTINHALT
+                self._get_safe_string(sheet.cell(row, 7).value).replace(' ', '').replace(';', ''),   # 7 LINIENOBJ(1)-OBJEKTINHALT
                 self._get_safe_string(sheet.cell(row, 8).value)    # 8 LINIENOBJ(1)-OBJECTID
             ]
 
@@ -141,33 +144,58 @@ class MultiSymbolLineConverter(COPExObject2MSSConverter):
                 kvm_la.get_value("BASISTYP").replace(" ", ""),
                 kvm_lo0.get_value("KOMPONENTENNAME").replace(" ", ""),
                 kvm_lo0.get_value("OBJEKTTYP").replace(" ", ""),
-                kvm_lo0.get_value("OBJEKTINHALT").replace(" ", ""),
+                kvm_lo0.get_value("OBJEKTINHALT").replace(" ", "").replace(';', ''),
                 kvm_lo0.get_value("OBJECTID").replace(" ", ""),
                 kvm_lo1.get_value("KOMPONENTENNAME").replace(" ", ""),
                 kvm_lo1.get_value("OBJEKTTYP").replace(" ", ""),
-                kvm_lo1.get_value("OBJEKTINHALT").replace(" ", ""),
-                kvm_lo1.get_value("OBJECTID".replace(" ", ""))
+                kvm_lo1.get_value("OBJEKTINHALT").replace(" ", "").replace(';', ''),
+                kvm_lo1.get_value("OBJECTID").replace(" ", "")
             ]
 
+            mapping_found = False
             for mapping in self.mapping_BASISTYP_LINIENOBJ:
                 if mapping[0] == key:
                     sym_id = mapping[1][0]
                     if mapping[1][1] != "":
                         attrs["XE"] = mapping[1][1]
-
+                    mapping_found = True
                     break
+
+            if not mapping_found:
+                # try a simpler mapping - map only the "BASISTYP"
+                key = [
+                    kvm_la.get_value("BASISTYP").replace(" ", ""),
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    ''
+                ]
+                for mapping in self.mapping_BASISTYP_LINIENOBJ:
+                    if mapping[0] == key:
+                        sym_id = mapping[1][0]
+                        if mapping[1][1] != "":
+                            attrs["XE"] = mapping[1][1]
+                        mapping_found = True
+                        break
 
         # get symbol id for planned/anticipated from line pattern
         symbol_from_LINE_PATTERN = {self.MAP_KEY_ID: "***************"}
         for mapping_LINE_PATTERN in self.mapping_LINE_PATTERN:
             if mapping_LINE_PATTERN[0] == kvm_la.get_value('LINE_PATTERN'):
                 symbol_from_LINE_PATTERN[self.MAP_KEY_ID] = mapping_LINE_PATTERN[1]
+                break
 
         # get the symbol id for the friend/foe from color
         symbol_from_COLOR = {self.MAP_KEY_ID: "***************"}
         for mapping_COLOR in self.mapping_COLOR:
-            if mapping_COLOR[0] == kvm_la.get_value('COLOR').replace(" ", ""):
+            color = kvm_la.get_value('COLOR').replace(" ", "")
+            if mapping_COLOR[0] == color:
                 symbol_from_COLOR[self.MAP_KEY_ID] = mapping_COLOR[1]
+                break
 
         # the different symbol ids will now be merged.
         # the important on is the first, ...

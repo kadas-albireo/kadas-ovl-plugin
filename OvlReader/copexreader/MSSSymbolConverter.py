@@ -1,6 +1,6 @@
 import os
-from xlrd import open_workbook
-from COPEx import *
+from OvlReader.copexreader.xlrd import open_workbook
+from OvlReader.copexreader.COPEx import *
 from COPExObject2MSSConverter import COPExObject2MSSConverter
 
 

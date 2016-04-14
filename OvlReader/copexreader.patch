@@ -1,0 +1,230 @@
+diff -bupN ovlreader/MultiSymbolConverter.py ovlreader-new/MultiSymbolConverter.py
+--- ovlreader/MultiSymbolConverter.py	2016-02-10 13:39:06.000000000 +0100
++++ ovlreader-new/MultiSymbolConverter.py	2016-03-14 15:19:35.803940017 +0100
+@@ -1,6 +1,6 @@
+ import os
+-from xlrd import open_workbook
+-from COPEx import *
++from OvlReader.copexreader.xlrd import open_workbook
++from OvlReader.copexreader.COPEx import *
+ from COPExObject2MSSConverter import COPExObject2MSSConverter
+ 
+ 
+diff -bupN ovlreader/MultiSymbolLineConverter.py ovlreader-new/MultiSymbolLineConverter.py
+--- ovlreader/MultiSymbolLineConverter.py	2016-01-26 18:16:46.000000000 +0100
++++ ovlreader-new/MultiSymbolLineConverter.py	2016-03-14 15:19:35.803940017 +0100
+@@ -1,6 +1,6 @@
+ import os
+-from xlrd import open_workbook
+-from COPEx import *
++from OvlReader.copexreader.xlrd import open_workbook
++from OvlReader.copexreader.COPEx import *
+ from COPExObject2MSSConverter import COPExObject2MSSConverter
+ 
+ 
+diff -bupN ovlreader/OverlayConverter.py ovlreader-new/OverlayConverter.py
+--- ovlreader/OverlayConverter.py	2016-02-18 16:55:16.466234526 +0100
++++ ovlreader-new/OverlayConverter.py	2016-03-14 15:19:35.803940017 +0100
+@@ -1,7 +1,8 @@
+ import zipfile
+ import os
++import sys
+ from xml.dom import minidom
+-from COPEx import *
++from OvlReader.copexreader.COPEx import *
+ from MultiSymbolConverter import MultiSymbolConverterAXXI, MultiSymbolConverterBABS
+ from MSSSymbolConverter import MSSSymbolConverter
+ from MultiSymbolLineConverter import MultiSymbolLineConverter
+@@ -16,12 +17,12 @@ base_dir = os.path.dirname(os.path.abspa
+ # f = base_dir + r'\swissline_docu.ovl'
+ # f = base_dir + r'\swissline_lines_areas.ovl'
+ # f = base_dir + r'\swissline_lines_menu.ovl'
+-f = base_dir + '/../../sample_ovl' + r'/swissline_tab_all.ovl'
++# f = base_dir + '\..\..\sample_ovl' + r'\swissline_tab_all.ovl'
+ 
+ symbol2mss_converter = [
+-    MultiSymbolConverterAXXI(base_dir + '/../../mapping'),
+-    MultiSymbolConverterBABS(base_dir + '/../../mapping'),
+-    MultiSymbolLineConverter(base_dir + '/../../mapping'),
++    MultiSymbolConverterAXXI(base_dir + '/mapping'),
++    MultiSymbolConverterBABS(base_dir + '/mapping'),
++    MultiSymbolLineConverter(base_dir + '/mapping'),
+     MSSSymbolConverter()
+ ]
+ 
+@@ -54,7 +55,8 @@ def get_image_name(symbol_string):
+ 
+     return symstr
+ 
+-def read_copex(copex_node):
++
++def read_copex(clsid, byte_data_value):
+     """
+     Read COPEx specific data from a XML node.
+ 
+@@ -63,14 +65,8 @@ def read_copex(copex_node):
+     global mapping_found
+     global symbol_count
+ 
+-    clsid = copex_node.getAttribute('clsid')
+-    # iid_name = copex_node.getAttribute('iidName')
+-    byte_data_node = copex_node.getElementsByTagName('ByteArray')
+-    if len(byte_data_node) > 0:
+-        byte_data_value = byte_data_node[0].getAttribute('Value')
+-        # byte_data_size = byte_data_node[0].getAttribute('Size')
+         byte_data = bytearray.fromhex(byte_data_value)
+-        print(byte_data)
++    # print byte_data.decode("utf-8")
+ 
+         copex_obj = None
+         if clsid == APP6aObject.CLSID:
+@@ -98,20 +94,21 @@ def read_copex(copex_node):
+ 
+             if symbol_def is not None:
+                 mapping_found += 1
++            # print COPExObject2MSSConverter.get_mms_string(symbol_def)
+                 # print(symbol_def)
+                 # print("MSS-Lib XML String: " + COPExObject2MSSConverter.get_mms_string(symbol_def))
+-                print(copex_obj.get_symbol_string() +
+-                      "\t" + COPExObject2MSSConverter.get_mms_string(symbol_def) +
+-                      "\t" + get_image_name(copex_obj.get_symbol_string()))
++            return (COPExObject2MSSConverter.get_mms_string(symbol_def))
++
+             else:
++            pass
+                 # print("Conversion failed : " + copex_obj.get_symbol_string())
+-                print(copex_obj.get_symbol_string() +
+-                      "\t" +
+-                      "\t" + get_image_name(copex_obj.get_symbol_string()))
++            # print(copex_obj.get_symbol_string() +
++            #       "\t" +
++            #       "\t" + get_image_name(copex_obj.get_symbol_string()))
+ 
+ 
+ def main():
+-    f = "/home/sandro/Documents/ownCloud/Shared/Realisierung/ovl/Lagedarstellung_Reglement.ovl"
++
+     if zipfile.is_zipfile(f):
+ 
+         zf = zipfile.ZipFile(f)
+diff -bupN ovlreader/ReadOverlay.py ovlreader-new/ReadOverlay.py
+--- ovlreader/ReadOverlay.py	2016-02-18 16:50:10.650684317 +0100
++++ ovlreader-new/ReadOverlay.py	2016-03-14 15:19:35.803940017 +0100
+@@ -5,21 +5,20 @@
+ 
+ import zipfile
+ from xml.dom import minidom
+-from COPExObject2MSSConverter import COPExObject2MSSConverter
+ 
+ from COPEx import *
+ import os
+ 
+ # define the overlay file here
+-base_dir = os.path.dirname(os.path.abspath(__file__)) + '/../../sample_ovl'
+-f = base_dir + r'/swissline_tab_all.ovl'
+-# f = base_dir + r'/swissline.ovl'
+-# f = base_dir + r'/swissline_MSS.ovl'
+-# f = base_dir + r'/swissline_lines.ovl'
+-# f = base_dir + r'/swissline_titel.ovl'
+-# f = base_dir + r'/swissline_docu.ovl'
+-# f = base_dir + r'/swissline_lines_areas.ovl'
+-# f = base_dir + r'/swissline_lines_menu.ovl'
++base_dir = os.path.dirname(os.path.abspath(__file__)) + '\..\..\sample_ovl'
++f = base_dir + r'\swissline_tab_all.ovl'
++# f = base_dir + r'\swissline.ovl'
++# f = base_dir + r'\swissline_MSS.ovl'
++# f = base_dir + r'\swissline_lines.ovl'
++# f = base_dir + r'\swissline_titel.ovl'
++# f = base_dir + r'\swissline_docu.ovl'
++# f = base_dir + r'\swissline_lines_areas.ovl'
++# f = base_dir + r'\swissline_lines_menu.ovl'
+ 
+ 
+ def read_copex(copex_node):
+@@ -59,12 +58,9 @@ def read_copex(copex_node):
+             print("==========================")
+             print("Symboltype: " + type(copex_obj).__name__)
+             print(copex_obj)
+-            print(copex_obj.get_symbol_string() +
+-                      "\t" + COPExObject2MSSConverter.get_mms_string(symbol_def))
+ 
+ 
+ def main():
+-    f = "/home/sandro/Documents/ownCloud/Shared/Realisierung/ovl/Lagedarstellung_Reglement.ovl"
+     # check if the file is a zip-file
+     if zipfile.is_zipfile(f):
+ 
+diff -bupN ovlreader/COPEx/__init__.py ovlreader-new/COPEx/__init__.py
+--- ovlreader/COPEx/__init__.py	2016-01-12 01:23:24.000000000 +0100
++++ ovlreader-new/COPEx/__init__.py	2016-03-14 15:19:35.803940017 +0100
+@@ -1,7 +1,7 @@
+ from CoordLL84 import *
+ from KeyValueManager import *
+ from MemStream import *
+-from COPEx import *
++from OvlReader.copexreader.COPEx import *
+ from AnnotationObject import *
+ from APP6aObject import *
+ from MSSObject import *
+diff -bupN ovlreader/COPEx/MemStream.py ovlreader-new/COPEx/MemStream.py
+--- ovlreader/COPEx/MemStream.py	2016-01-23 21:07:46.000000000 +0100
++++ ovlreader-new/COPEx/MemStream.py	2016-03-14 15:19:35.803940017 +0100
+@@ -11,7 +11,7 @@ class MemStream(object):
+
+     def read_dword(self):
+         # unsigned Long, 4 bytes
+-        dw, = struct.unpack_from('L', self.data, self.idx_data)
++        dw, = struct.unpack_from('I', self.data, self.idx_data)
+         self.idx_data += 4
+
+         return dw
+diff -bupN ovlreader/COPEx/MultiSymbolLineObject.py ovlreader-new/COPEx/MultiSymbolLineObject.py
+--- ovlreader/COPEx/MultiSymbolLineObject.py	2016-01-23 23:11:54.000000000 +0100
++++ ovlreader-new/COPEx/MultiSymbolLineObject.py	2016-03-14 15:19:35.803940017 +0100
+@@ -24,8 +24,8 @@ class MultiSymbolLineObject(COPExObject)
+                 lat, lng, hgt = ms.read_coordinate()
+                 self.coords.append(CoordLL84(lat, lng, hgt))
+
+-            self.display_name = ms.read_string().decode('UTF-8')
+-            self.symbol_string = ms.read_string().decode('UTF-8')
++            self.display_name = ms.read_string().decode('latin-1')
++            self.symbol_string = ms.read_string().decode('latin-1')
+         elif version == 0x0100:
+             # strings are ASCII coded
+             coord_count = ms.read_dword()
+@@ -35,8 +35,8 @@ class MultiSymbolLineObject(COPExObject)
+                 lat, lng, hgt = ms.read_coordinate()
+                 self.coords.append(CoordLL84(lat, lng, hgt))
+
+-            self.display_name = ms.read_string()
+-            self.symbol_string = ms.read_string()
++            self.display_name = ms.read_string().decode('latin-1')
++            self.symbol_string = ms.read_string().decode('latin-1')
+
+         self.kvm.set_key_value_string(self.symbol_string)
+
+diff -bupN ovlreader/COPEx/MultiSymbolObject.py ovlreader-new/COPEx/MultiSymbolObject.py
+--- ovlreader/COPEx/MultiSymbolObject.py	2016-01-23 23:13:18.000000000 +0100
++++ ovlreader-new/COPEx/MultiSymbolObject.py	2016-03-14 15:19:35.803940017 +0100
+@@ -24,8 +24,8 @@ class MultiSymbolObject(COPExObject):
+             self.coords = []
+             self.coords.append(CoordLL84(lat, lng, hgt))
+
+-            self.symbol_string = ms.read_string().decode('UTF-8')
+-            self.display_name = ms.read_string().decode('UTF-8')
++            self.symbol_string = ms.read_string().decode('latin-1')
++            self.display_name = ms.read_string().decode('latin-1')
+         elif version == 0x0100:
+             # strings are ASCII coded
+
+@@ -36,8 +36,8 @@ class MultiSymbolObject(COPExObject):
+             self.coords = []
+             self.coords.append(CoordLL84(lat, lng, hgt))
+
+-            self.symbol_string = ms.read_string()
+-            self.display_name = ms.read_string()
++            self.symbol_string = ms.read_string().decode('latin-1')
++            self.display_name = ms.read_string().decode('latin-1')
+
+     def __str__(self):
+         str_ret = ""

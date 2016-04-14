@@ -14,7 +14,6 @@ class MultiSymbolConverterBABS(COPExObject2MSSConverter):
     def __init__(self, mapping_file_folder='.'):
         COPExObject2MSSConverter.__init__(self)
 
-        self.mapping_list = {}
         self.mapping_file_folder = mapping_file_folder
 
         # these are the MultiSymbolObject Keys we are necessary for the mapping
@@ -83,6 +82,7 @@ class MultiSymbolConverterBABS(COPExObject2MSSConverter):
         kvm.set_key_value_string(copex_obj.get_symbol_string())
 
         lang = kvm.get_value('LANGUAGE').upper()
+
         if lang == "BABS_P":
             pass
 
@@ -137,10 +137,10 @@ class MultiSymbolConverterBABS(COPExObject2MSSConverter):
             text_value_map = {
                 # "TEXT0": "",    # TEXT0	Organisation
                 # "TEXT1": "",    # TEXT1	Naehere Kennzeichnung
-                "TEXT2": "M",   # TEXT2	Fuehrung
-                "TEXT4": "H",   # TEXT4	Nummerierung
-                "TEXT5": "G",   # TEXT5	Ortsbezeichnung
-                "TEXT7": "H"    # TEXT7	Zusatzangaben
+                "TEXT2": "M",  # TEXT2	Fuehrung
+                "TEXT4": "H",  # TEXT4	Nummerierung
+                "TEXT5": "G",  # TEXT5	Ortsbezeichnung
+                "TEXT7": "H"  # TEXT7	Zusatzangaben
             }
 
             attrs = {}
@@ -158,13 +158,13 @@ class MultiSymbolConverterBABS(COPExObject2MSSConverter):
             # the different symbol ids will now be merged.
             # the important one is the first, ...
             sym_id = self._merge_id(
-                [
-                    symbol_from_GZ_to_TEXT7[self.MAP_KEY_ID],
-                    symbol_from_GZ[self.MAP_KEY_ID],
-                    symbol_from_COLOR[self.MAP_KEY_ID],
-                    symbol_from_ZZ0[self.MAP_KEY_ID],
-                    symbol_from_LINE_PATTERN[self.MAP_KEY_ID]
-                ]
+                    [
+                        symbol_from_GZ_to_TEXT7[self.MAP_KEY_ID],
+                        symbol_from_GZ[self.MAP_KEY_ID],
+                        symbol_from_COLOR[self.MAP_KEY_ID],
+                        symbol_from_ZZ0[self.MAP_KEY_ID],
+                        symbol_from_LINE_PATTERN[self.MAP_KEY_ID]
+                    ]
             )
 
             # do we have a valid "Function ID"
@@ -186,14 +186,13 @@ class MultiSymbolConverterAXXI(COPExObject2MSSConverter):
     def __init__(self, mapping_file_folder='.'):
         COPExObject2MSSConverter.__init__(self)
 
-        self.mapping_list = {}
         self.mapping_file_folder = mapping_file_folder
 
         # these are the MultiSymbolObject Keys we are necessary for the mapping
         self.str_multisymbol_keys = ["GZ", "ZZ1", "ZZ3", "TEXT0", "TEXT8"]
         self.str_multisymbol_keys_simple = ["ZZ1", "ZZ3", "TEXT0"]
         # these are the MSS Keys from the mapping
-        self.str_mss_keys = ["ID", "H", "XE", "XA", "XA1", "XB", "XD"]
+        self.str_mss_keys = ["ID", "H", "XE", "XA", "XA1", "XB", "XD", "XH"]
         self.str_mss_keys_simple = ["ID", "XE", "XA", "XA1"]
         # main mapping table for the symbol definition
         self.mapping_GZ_ZZ1_ZZ3_TEXT0_TEXT8 = []
@@ -244,7 +243,7 @@ class MultiSymbolConverterAXXI(COPExObject2MSSConverter):
 
             self.mapping_GZ_ZZ1_ZZ3_TEXT0_TEXT8.append([key, value])
 
-        # room foo improvement:
+        # room for improvement:
         # - create mapping from ZZ1_ZZ3_TEXT0 only
         # - remove LogFo and StabsFo from ZZ3 amd append manually the MSS attributes
         # - TEXT8 is "Freitext" -> H
@@ -351,33 +350,37 @@ class MultiSymbolConverterAXXI(COPExObject2MSSConverter):
             for mapping_GZ in self.mapping_GZ:
                 if mapping_GZ[0] == kvm.get_value('GZ'):
                     symbol_from_GZ[self.MAP_KEY_ID] = mapping_GZ[1]
+                    break
 
             # get symbol id for planned/anticipated from line pattern
             symbol_from_LINE_PATTERN = {self.MAP_KEY_ID: "***************"}
             for mapping_LINE_PATTERN in self.mapping_LINE_PATTERN:
                 if mapping_LINE_PATTERN[0] == kvm.get_value('LINE_PATTERN'):
                     symbol_from_LINE_PATTERN[self.MAP_KEY_ID] = mapping_LINE_PATTERN[1]
+                    break
 
             # get the symbol id for the friend/foe from color
             symbol_from_COLOR = {self.MAP_KEY_ID: "***************"}
             for mapping_COLOR in self.mapping_COLOR:
                 if mapping_COLOR[0] == kvm.get_value('COLOR').replace(" ", ""):
                     symbol_from_COLOR[self.MAP_KEY_ID] = mapping_COLOR[1]
+                    break
 
             # get the symbol id for the troop size
             symbol_from_ZZ0 = {self.MAP_KEY_ID: "***************"}
             for mapping_ZZ0 in self.mapping_ZZ0:
                 if mapping_ZZ0[0] == kvm.get_value('ZZ0'):
                     symbol_from_ZZ0[self.MAP_KEY_ID] = mapping_ZZ0[1]
+                    break
 
             ###############################################
             # map text values
             text_value_map = {
-                "TEXT2": "W",   # TEXT2	Datum/Zeit		        W
-                "TEXT5": "T",   # TEXT5	Nr. der Formation		T
-                "TEXT6": "F",   # TEXT6	Verst./Vermindert		F
-                "TEXT8": "H",   # TEXT8	Freitext		        H  (XF/XE/XB)
-                "TEXT9": "M"    # TEXT9	Nr. vorges. Kommando	M
+                "TEXT2": "W",  # TEXT2	Datum/Zeit		        W
+                "TEXT5": "T",  # TEXT5	Nr. der Formation		T
+                "TEXT6": "F",  # TEXT6	Verst./Vermindert		F
+                "TEXT8": "H",  # TEXT8	Freitext		        H  (XF/XE/XB)
+                "TEXT9": "M"  # TEXT9	Nr. vorges. Kommando	M
             }
 
             attrs = {}
@@ -395,13 +398,13 @@ class MultiSymbolConverterAXXI(COPExObject2MSSConverter):
             # the different symbol ids will now be merged.
             # the important one is the first, ...
             sym_id = self._merge_id(
-                [
-                    symbol_from_GZ_to_TEXT8[self.MAP_KEY_ID],
-                    symbol_from_GZ[self.MAP_KEY_ID],
-                    symbol_from_COLOR[self.MAP_KEY_ID],
-                    symbol_from_ZZ0[self.MAP_KEY_ID],
-                    symbol_from_LINE_PATTERN[self.MAP_KEY_ID]
-                ]
+                    [
+                        symbol_from_GZ_to_TEXT8[self.MAP_KEY_ID],
+                        symbol_from_GZ[self.MAP_KEY_ID],
+                        symbol_from_COLOR[self.MAP_KEY_ID],
+                        symbol_from_ZZ0[self.MAP_KEY_ID],
+                        symbol_from_LINE_PATTERN[self.MAP_KEY_ID]
+                    ]
             )
 
             # do we have a valid "Function ID"
@@ -409,5 +412,134 @@ class MultiSymbolConverterAXXI(COPExObject2MSSConverter):
                 # yes, the a mapping was found
                 symbol_from_GZ_to_TEXT8[self.MAP_KEY_ID] = sym_id
                 return symbol_from_GZ_to_TEXT8
+
+        return None
+
+
+class MultiSymbolConverterZDV(COPExObject2MSSConverter):
+    """
+    Converts COPExCOPExMultiSymbolObjects with LANGUAGE="ZDV1/11".
+    """
+
+    def __init__(self, mapping_file_folder='.'):
+        COPExObject2MSSConverter.__init__(self)
+
+        # these are the MultiSymbolObject Keys we are necessary for the mapping
+        self.str_multisymbol_keys = ["GZ", "ZZ0", "ZZ1", "ZZ2", "ZZ3", "TEXT0", "TEXT8"]
+        # these are the MSS Keys from the mapping
+        self.str_mss_keys = ["ID", "H", "XE", "XA", "XA1", "XB", "XD", "XH"]
+        # main mapping table for the symbol definition
+        self.mapping_GZ_ZZ1_ZZ3_TEXT0_TEXT8 = [
+            # ["GZ", "ZZ0", "ZZ1", "ZZ2", "ZZ3", "TEXT0", "TEXT8"], ["ID", "H", "XE", "XA", "XA1", "XB", "XD", "XH"]
+            [['Sperre', '', '', '', '', '', 'x'], ['G*G*GPPO--*****', '', '', '', '', '', '', '']],
+        ]
+        self.mapping_COLOR = [
+            ['0,0,255', '*F*************'],
+            ['0,0,0', '*F*************'],
+            ['255,0,0', '*H*************'],
+            ['0,255,0', '*N*************'],
+            ['255,255,0', '*U*************'],
+            ['0,255,255', '***************'],
+            ['0,136,0', '*N*************'],
+            ['255,128,0', '*U*************']
+        ]
+        self.mapping_LINE_PATTERN = [
+            ['SOLID', '***P***********'],
+            ['DASH', '***A***********'],
+            ['DOT', '***A***********'],
+            ['DASHDOT', '***A***********']
+        ]
+
+    def map(self, copex_obj):
+        """
+        Get the mapping for a COPExObject
+
+        @param copex_obj the copex object
+        @return a map with "ID" and "Attributes" which defines an MSS symbol or None if no mapping was found
+        """
+
+        if not isinstance(copex_obj, MultiSymbolObject):
+            return None
+
+        kvm = KeyValueManager(';')
+        kvm.set_key_value_string(copex_obj.get_symbol_string())
+
+        lang = kvm.get_value('LANGUAGE').upper()
+        if lang in ["ZDV1/11"]:
+            # try to get the symbol direct from the mapping table
+            symbol_from_GZ_to_TEXT8 = {self.MAP_KEY_ID: "***************"}
+            key = []
+            for k in self.str_multisymbol_keys:
+                key.append(kvm.get_value(k))
+
+            for mapping in self.mapping_GZ_ZZ1_ZZ3_TEXT0_TEXT8:
+                if mapping[0] == key:
+                    symbol_from_GZ_to_TEXT8[self.MAP_KEY_ID] = mapping[1][0]
+                    idx = 1
+                    attrs = {}
+                    for k in self.str_mss_keys[1:]:
+                        if mapping[1][idx] != "":
+                            attrs[k] = mapping[1][idx]
+                        idx += 1
+                    symbol_from_GZ_to_TEXT8[self.MAP_KEY_ATTRIBUTES] = attrs
+
+                    break
+
+            # get symbol id for planned/anticipated from line pattern
+            symbol_from_LINE_PATTERN = {self.MAP_KEY_ID: "***************"}
+            for mapping_LINE_PATTERN in self.mapping_LINE_PATTERN:
+                if mapping_LINE_PATTERN[0] == kvm.get_value('LINE_PATTERN'):
+                    symbol_from_LINE_PATTERN[self.MAP_KEY_ID] = mapping_LINE_PATTERN[1]
+                    break
+
+            # get the symbol id for the friend/foe from color
+            symbol_from_COLOR = {self.MAP_KEY_ID: "***************"}
+            for mapping_COLOR in self.mapping_COLOR:
+                if mapping_COLOR[0] == kvm.get_value('COLOR').replace(" ", ""):
+                    symbol_from_COLOR[self.MAP_KEY_ID] = mapping_COLOR[1]
+                    break
+
+            # the different symbol ids will now be merged.
+            # the important one is the first, ...
+            sym_id = self._merge_id(
+                    [
+                        symbol_from_GZ_to_TEXT8[self.MAP_KEY_ID],
+                        symbol_from_COLOR[self.MAP_KEY_ID],
+                        symbol_from_LINE_PATTERN[self.MAP_KEY_ID]
+                    ]
+            )
+
+            # do we have a valid "Function ID"
+            if "*" not in sym_id[4:9]:
+                # yes, the a mapping was found
+                symbol_from_GZ_to_TEXT8[self.MAP_KEY_ID] = sym_id
+                return symbol_from_GZ_to_TEXT8
+
+        return None
+
+
+class MultiSymbolConverter(COPExObject2MSSConverter):
+    def __init__(self, mapping_file_folder='.'):
+        COPExObject2MSSConverter.__init__(self)
+
+        self.multi_symbol_converters = [
+            MultiSymbolConverterBABS(mapping_file_folder),
+            MultiSymbolConverterAXXI(mapping_file_folder),
+            MultiSymbolConverterZDV(mapping_file_folder)
+        ]
+
+    def map(self, copex_obj):
+        """
+        Get the mapping for a COPExObject
+
+        @param copex_obj the copex object
+        @return a map with "ID" and "Attributes" which defines an MSS symbol or None if no mapping was found
+        """
+
+        for converter in self.multi_symbol_converters:
+            mapping = converter.map(copex_obj)
+
+            if mapping is not None:
+                return mapping
 
         return None

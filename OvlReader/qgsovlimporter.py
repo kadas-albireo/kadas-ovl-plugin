@@ -38,13 +38,13 @@ class QgsOvlImporter(QObject):
         self.iface = iface
         self.milx_layer = QgsMilXLayer(iface)
         if not filename:
-            lastProjectDir = QSettings().value("/UI/lastProjectDir", ".")
-            filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File"), lastProjectDir, self.tr("OVL Files (*.ovl);;"))
+            lastDir = QSettings().value("/UI/lastImportExportDir", ".")
+            filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File"), lastDir, self.tr("OVL Files (*.ovl);;"))
             finfo(filename)
             if not finfo.exists():
                 return
 
-                QSettings().setValue("/UI/lastProjectDir", finfo.absolutePath())
+                QSettings().setValue("/UI/lastImportExportDir", finfo.absolutePath())
 
         file_list = []
         try:
@@ -54,7 +54,7 @@ class QgsOvlImporter(QObject):
             pass
         # geogrid(filename, "geogrid50.xml")
         if 'geogrid50.xml' not in file_list:
-            QMessageBox.warning(self.iface.mainWindow(), self.tr("Error"), self.tr("The file does not appear to be a valid OVL file:  {fn}").format(fn=QFileInfo(filename).fileName()))
+            QMessageBox.warning(self.iface.mainWindow(), self.tr("Error"), self.tr("The file does not appear to be a valid OVL v5.0 file:  {fn}").format(fn=QFileInfo(filename).fileName()))
             return
 
         geogrid = zf.read('geogrid50.xml')
@@ -149,6 +149,7 @@ class QgsOvlImporter(QObject):
             edit = QPlainTextEdit("\n".join(mssErrors))
             edit.setReadOnly(True)
             dialog.layout().addWidget(edit)
+        dialog.layout().addWidget(QLabel(self.tr("Please note that even for successfully converted objects, the representation may differ compared to the PCMAP Swissline Software. It is therefore recommended to check the imported data.")))
         bbox = QDialogButtonBox(QDialogButtonBox.Close)
         bbox.accepted.connect(dialog.accept)
         bbox.rejected.connect(dialog.reject)

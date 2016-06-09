@@ -149,7 +149,13 @@ class QgsOvlImporter(QObject):
             edit = QPlainTextEdit("\n".join(mssErrors))
             edit.setReadOnly(True)
             dialog.layout().addWidget(edit)
-        dialog.layout().addWidget(QLabel(self.tr("Please note that even for successfully converted objects, the representation may differ compared to the PCMAP Swissline Software. It is therefore recommended to check the imported data.")))
+        line = QFrame();
+        line.setFrameShape(QFrame.HLine);
+        line.setFrameShadow(QFrame.Sunken);
+        dialog.layout().addWidget(line)
+        importWarningLabel = QLabel("<small><i>%s</i></small>" % self.tr("Please note that even for successfully converted objects, the representation may differ compared to the PCMAP Swissline Software. It is therefore recommended to check the imported data."))
+        importWarningLabel.setWordWrap(True)
+        dialog.layout().addWidget(importWarningLabel)
         bbox = QDialogButtonBox(QDialogButtonBox.Close)
         bbox.accepted.connect(dialog.accept)
         bbox.rejected.connect(dialog.reject)

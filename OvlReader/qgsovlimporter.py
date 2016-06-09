@@ -145,7 +145,7 @@ class QgsOvlImporter(QObject):
             edit.setReadOnly(True)
             dialog.layout().addWidget(edit)
         if mssErrors:
-            dialog.layout().addWidget(QLabel(self.tr("The MSS symbols did not pass validation:")))
+            dialog.layout().addWidget(QLabel(self.tr("The following MSS symbols did not pass validation:")))
             edit = QPlainTextEdit("\n".join(mssErrors))
             edit.setReadOnly(True)
             dialog.layout().addWidget(edit)

@@ -515,7 +515,7 @@ class QgsOvlImporter(QObject):
             if not valid:
                 return (False, mssxml, messages)
             milx_item = QgsMilXItem()
-            milx_item.initialize(adjmssxml, "", v1points, [], QPoint(), QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
+            milx_item.initialize(adjmssxml, "", v1points, QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
             self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")
@@ -570,7 +570,7 @@ class QgsOvlImporter(QObject):
             if not valid:
                 return (False, mssxml, messages)
             milx_item = QgsMilXItem()
-            milx_item.initialize(adjmssxml, '', v1points, [], QPoint(), QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
+            milx_item.initialize(adjmssxml, '', v1points, QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
             self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")

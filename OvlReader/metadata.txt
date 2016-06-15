@@ -10,7 +10,7 @@
 name=Ovl Reader
 qgisMinimumVersion=2.0
 description=This plugin reads ovl data
-version=0.3.0
+version=0.3.1
 author=Sourcepole
 email=smani@sourcepole.ch
 
@@ -25,6 +25,9 @@ repository=
 # Uncomment the following line and add your changelog:
 changelog=
 changelog=
+ Rev 0.3.1 (16.06.2016)
+  - Italian translation
+
  Rev 0.3.0 (09.06.2016)
   - German translation
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="it">
+<!DOCTYPE TS><TS version="2.0" language="it" sourcelanguage="">
 <context>
     <name>OvlReader</name>
     <message>
@@ -72,7 +71,7 @@
         <translation>Non è stato possibile convertire i seguenti oggetti:</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="152"/>
+        <location filename="../qgsovlimporter.py" line="156"/>
         <source>Please note that even for successfully converted objects, the representation may differ compared to the PCMAP Swissline Software. It is therefore recommended to check the imported data.</source>
         <translation>Per favore notare che pure per oggetti convertiti con successo, la rappresentazione puo differire rispetto al programma PCMAP Swissline. È pertanto consigliato verificare i dati importati.</translation>
     </message>

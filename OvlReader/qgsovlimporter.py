@@ -326,7 +326,7 @@ class QgsOvlImporter(QObject):
                     QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
                     QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
             elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
-                ring = QgsCircularStringV2
+                ring = QgsCircularStringV2()
                 ring.setPoints([
                     QgsPointV2(point.x() + .5 * width, point.y()),
                     QgsPointV2(point.x(), point.y()),

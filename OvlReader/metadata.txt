@@ -1,16 +1,8 @@
-# This file contains metadata for your plugin. Since 
-# version 2.0 of QGIS this is the proper way to supply 
-# information about a plugin. The old method of 
-# embedding metadata in __init__.py will 
-# is no longer supported since version 2.0.
-
-# This file should be included when you package your plugin.# Mandatory items:
-
 [general]
 name=Ovl Reader
 qgisMinimumVersion=2.0
 description=This plugin reads ovl data
-version=0.3.2
+version=0.3.3
 author=Sourcepole
 email=smani@sourcepole.ch
 
@@ -18,14 +10,12 @@ about=Read OVL files into Qgis.
 
 tracker=
 repository=
-# End of mandatory metadata
 
-# Recommended items:
+changelog=
+ Rev 0.3.3 (24.05.2017)
+  - Fix Circle import
 
-# Uncomment the following line and add your changelog:
-changelog=
-changelog=
- Rev 0.3.3 (16.06.2016)
+ Rev 0.3.2 (16.06.2016)
   - French translation
 
  Rev 0.3.1 (16.06.2016)
@@ -40,9 +30,6 @@ tags=
 homepage=
 category=Plugins
 icon=icon.png
-# experimental flag
 experimental=False
-
-# deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
 

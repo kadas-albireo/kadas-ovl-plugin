@@ -308,7 +308,9 @@ class QgsOvlImporter(QObject):
             da = QgsDistanceArea()
             da.convertMeasurement(width, QGis.Meters, QGis.Degrees, False)
             da.convertMeasurement(height, QGis.Meters, QGis.Degrees, False)
+            shape = ""
             if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
+                shape = "rectangle"
                 ring = QgsLineStringV2()
                 ring.setPoints([
                     QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
@@ -317,6 +319,7 @@ class QgsOvlImporter(QObject):
                     QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
                     QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
             elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
+                shape = "polygon"
                 rotation += 90
                 ring = QgsLineStringV2()
                 ring.setPoints([
@@ -326,6 +329,7 @@ class QgsOvlImporter(QObject):
                     QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
                     QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
             elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
+                shape = "circle"
                 ring = QgsCircularStringV2()
                 ring.setPoints([
                     QgsPointV2(point.x() + .5 * width, point.y()),
@@ -333,20 +337,20 @@ class QgsOvlImporter(QObject):
                     QgsPointV2(point.x() + .5 * width, point.y())])
             poly = QgsCurvePolygonV2()
             poly.setExteriorRing(ring)
-            self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "", tooltip)
+            self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "shape=" + shape, tooltip)
         else:
             width = (width * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
             height = (height * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
-            shape = ""
+            symbol = ""
             if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
-                shape = "rectangle"
+                symbol = "rectangle"
             elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
                 rotation += 90
-                shape = "triangle"
+                symbol = "triangle"
             elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
-                shape = "circle"
+                symbol = "circle"
 
-            flags = "symbol={shp},w={wdth},h={hght},r={rot}".format(shp=shape, wdth=width, hght=height, rot=rotation)
+            flags = "shape=point,symbol={sym},w={wdth},h={hght},r={rot}".format(sym=symbol, wdth=width, hght=height, rot=rotation)
             self.iface.redliningLayer().addShape(QgsGeometry(point.clone()), outline, fill, lineSize, lineStyle, fillStyle, flags, tooltip)
 
     def parseLine(self, object):
@@ -390,7 +394,7 @@ class QgsOvlImporter(QObject):
             line.addVertex(points.front())
 
         # TODO: roundable, startDelimiter, endDelimiter
-        self.iface.redliningLayer().addShape(QgsGeometry(line), outline, Qt.black, lineSize, lineStyle, Qt.SolidPattern, "", tooltip)
+        self.iface.redliningLayer().addShape(QgsGeometry(line), outline, Qt.black, lineSize, lineStyle, Qt.SolidPattern, "shape=line", tooltip)
 
     def parsePolygon(self, object):
         points = []
@@ -431,7 +435,7 @@ class QgsOvlImporter(QObject):
         ring.addVertex(points[0])
         poly.setExteriorRing(ring)
 
-        self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "", tooltip)
+        self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "shape=polygon", tooltip)
 
     def parseText(self, object):
         text = ""

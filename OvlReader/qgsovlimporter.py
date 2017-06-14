@@ -40,6 +40,7 @@ class QgsOvlImporter(QObject):
         if not filename:
             lastDir = QSettings().value("/UI/lastImportExportDir", ".")
             filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File"), lastDir, self.tr("OVL Files (*.ovl);;"))
+            if type(filename) == tuple: filename = filename[0]
             fileinfo = QFileInfo(filename)
             if not fileinfo.exists():
                 return

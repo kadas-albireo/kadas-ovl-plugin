@@ -81,6 +81,7 @@ class OvlReader(QObject):
     def __importOVL(self):
         lastProjectDir = QSettings().value("/UI/lastProjectDir", ".")
         filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File..."), lastProjectDir, self.tr("OVL Files (*.ovl);;"))
+        if type(filename) == tuple: filename = filename[0]
         finfo = QFileInfo(filename)
         if not finfo.exists():
             return

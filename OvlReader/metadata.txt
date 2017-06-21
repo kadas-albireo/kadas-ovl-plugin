@@ -2,7 +2,7 @@
 name=Ovl Reader
 qgisMinimumVersion=2.0
 description=This plugin reads ovl data
-version=0.3.3
+version=0.3.4
 author=Sourcepole
 email=smani@sourcepole.ch
 
@@ -12,6 +12,9 @@ tracker=
 repository=
 
 changelog=
+ Rev 0.3.4 (21.06.2017)
+  - Adapt for changed redlining API
+
  Rev 0.3.3 (24.05.2017)
   - Fix Circle import
 

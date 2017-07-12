@@ -16,6 +16,7 @@ class MultiSymbolLineConverter(COPExObject2MSSConverter):
 
         self.mapping_COLOR = []
         self.mapping_LINE_PATTERN = []
+        self.mapping_GRO = []
         self.mapping_BASISTYP_LINIENOBJ = []
         self._create_mapping(mapping_file_folder + os.sep + self.MAPPING_FILE)
 
@@ -49,6 +50,12 @@ class MultiSymbolLineConverter(COPExObject2MSSConverter):
             key = sheet.cell(row, 0).value
             value = sheet.cell(row, 1).value
             self.mapping_LINE_PATTERN.append([key, value])
+
+        sheet = book.sheet_by_name('GRO')
+        for row in range(sheet.nrows):
+            key = sheet.cell(row, 0).value
+            value = sheet.cell(row, 1).value
+            self.mapping_GRO.append([key, value])
 
         sheet = book.sheet_by_name('BASISTYP-LINIENOBJ')
         for row in range(sheet.nrows):
@@ -119,6 +126,7 @@ class MultiSymbolLineConverter(COPExObject2MSSConverter):
         elif klassen_name == "$Grenze":
             # Grenze / Boundary
             # RIGHT_NEIGHBOUR	TXT	RE Trt	RE Tgt	LEFT_NEIGHBOUR	TXT	LI Trt	LI Tgt	ECHELON	TXT	XX
+            # get the symbol id for the troop size
             sym_id = "G*G*GLB---*****"
             for kvm_lo in kvm_lineobjs:
                 if kvm_lo.get_value("KOMPONENTENNAME") == "RIGHT_NEIGHBOUR":
@@ -129,10 +137,19 @@ class MultiSymbolLineConverter(COPExObject2MSSConverter):
 
                 elif kvm_lo.get_value("KOMPONENTENNAME") == "ECHELON":
                     # set echelon in symid
-                    # echelon = kvm_lo.get_value("OBJEKTINHALT")
-                    # Xx | *?
-                    #attrs["B"] = kvm_lo.get_value("OBJEKTINHALT")
-                    pass
+                    symbol_from_GRO = "***************"
+                    echelon = kvm_lo.get_value("OBJEKTINHALT")
+                    for mapping_GRO in self.mapping_GRO:
+                        if mapping_GRO[0] == echelon:
+                            symbol_from_GRO = mapping_GRO[1]
+                            break
+
+                    sym_id = self._merge_id(
+                        [
+                            sym_id,
+                            symbol_from_GRO
+                        ]
+                    )
 
         else:
             # use mapping table to map BASISTTYP and LO0 and LO2 to SYMID

@@ -1,5 +1,5 @@
-from OvlReader.copexreader.xlrd import open_workbook
-from OvlReader.copexreader.COPEx import *
+from kadas_ovl.copexreader.xlrd import open_workbook
+from kadas_ovl.copexreader.COPEx import *
 
 
 class COPExObject2MSSConverter(object):

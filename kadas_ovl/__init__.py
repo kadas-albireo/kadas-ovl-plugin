@@ -31,5 +31,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
-    from .ovl_reader import OvlReader
+    from ovl_reader import OvlReader
     return OvlReader(iface)

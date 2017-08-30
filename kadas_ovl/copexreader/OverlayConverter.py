@@ -1,7 +1,7 @@
 import zipfile
 import os
 from xml.dom import minidom
-from OvlReader.copexreader.COPEx import *
+from kadas_ovl.copexreader.COPEx import *
 from MultiSymbolConverter import MultiSymbolConverter
 from MSSSymbolConverter import MSSSymbolConverter
 from MultiSymbolLineConverter import MultiSymbolLineConverter

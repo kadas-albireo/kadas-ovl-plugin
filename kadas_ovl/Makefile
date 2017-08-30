@@ -40,7 +40,7 @@ SOURCES = \
 	__init__.py \
 	ovl_reader.py ovl_reader_dialog.py
 
-PLUGINNAME = OvlReader
+PLUGINNAME = kadas_ovl
 
 PY_FILES = \
 	__init__.py \

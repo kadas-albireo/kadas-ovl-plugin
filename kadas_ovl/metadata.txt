@@ -1,17 +1,17 @@
 [general]
-name=Ovl Reader
+name=KADAS OVL Loader
 qgisMinimumVersion=2.0
-description=This plugin reads ovl data
-version=0.3.5
-author=Sourcepole
+qgisMaximumVersion=2.99
+description=OVL file support for KADAS
+about=OVL file support for KADAS.
+version=0.4.0
+author=Sandro Mani, Sourcepole AG
 email=smani@sourcepole.ch
 
-about=Read OVL files into Qgis.
-
-tracker=
-repository=
-
 changelog=
+ Rev 0.4.0 (30.08.2017)
+  - Plugin renamed to KADAS OVL Loader
+
  Rev 0.3.5 (22.08.2017)
   - Update ovl mapping to support hierarchy labels in sector boundaries
 
@@ -33,9 +33,9 @@ changelog=
 # Tags are comma separated with spaces allowed
 tags=
 
-homepage=
-category=Plugins
+homepage=https://gitlab.sourcepole.ch/sourcepole/kadas-ovl-plugin
+tracker=https://gitlab.sourcepole.ch/sourcepole/kadas-ovl-plugin
+repository=https://gitlab.sourcepole.ch/sourcepole/kadas-ovl-plugin
 icon=icon.png
 experimental=False
 deprecated=False
-

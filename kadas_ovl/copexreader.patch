@@ -5,8 +5,8 @@ diff -bupN ovlreader/MultiSymbolConverter.py ovlreader-new/MultiSymbolConverter.
  import os
 -from xlrd import open_workbook
 -from COPEx import *
-+from OvlReader.copexreader.xlrd import open_workbook
-+from OvlReader.copexreader.COPEx import *
++from kadas_ovl.copexreader.xlrd import open_workbook
++from kadas_ovl.copexreader.COPEx import *
  from COPExObject2MSSConverter import COPExObject2MSSConverter
  
  
@@ -17,8 +17,8 @@ diff -bupN ovlreader/MultiSymbolLineConverter.py ovlreader-new/MultiSymbolLineCo
  import os
 -from xlrd import open_workbook
 -from COPEx import *
-+from OvlReader.copexreader.xlrd import open_workbook
-+from OvlReader.copexreader.COPEx import *
++from kadas_ovl.copexreader.xlrd import open_workbook
++from kadas_ovl.copexreader.COPEx import *
  from COPExObject2MSSConverter import COPExObject2MSSConverter
  
  
@@ -31,7 +31,7 @@ diff -bupN ovlreader/OverlayConverter.py ovlreader-new/OverlayConverter.py
 +import sys
  from xml.dom import minidom
 -from COPEx import *
-+from OvlReader.copexreader.COPEx import *
++from kadas_ovl.copexreader.COPEx import *
  from MultiSymbolConverter import MultiSymbolConverterAXXI, MultiSymbolConverterBABS
  from MSSSymbolConverter import MSSSymbolConverter
  from MultiSymbolLineConverter import MultiSymbolLineConverter
@@ -162,7 +162,7 @@ diff -bupN ovlreader/COPEx/__init__.py ovlreader-new/COPEx/__init__.py
  from KeyValueManager import *
  from MemStream import *
 -from COPEx import *
-+from OvlReader.copexreader.COPEx import *
++from kadas_ovl.copexreader.COPEx import *
  from AnnotationObject import *
  from APP6aObject import *
  from MSSObject import *

@@ -565,10 +565,13 @@ class QgsOvlImporter(QObject):
             attribute = attribute.nextSiblingElement("attribute")
 
         copexobject = object.firstChildElement("attributeList").firstChildElement("COPExObject")
-        if copexobject:
-            iidName = copexobject.attribute("iidName")
-            if iidName == "IID_ICOPExObject":
-                copexobject, mssxml, reversePoints = self.parseCopex(copexobject)
+        try:
+            if copexobject:
+                iidName = copexobject.attribute("iidName")
+                if iidName == "IID_ICOPExObject":
+                    copexobject, mssxml, reversePoints = self.parseCopex(copexobject)
+        except:
+            return (False, "")
 
         if reversePoints:
             points.reverse()

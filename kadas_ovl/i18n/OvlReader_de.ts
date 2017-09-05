@@ -31,52 +31,52 @@
         <translation>OVL Dateien (*.ovl);;</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="57"/>
+        <location filename="../qgsovlimporter.py" line="58"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="57"/>
+        <location filename="../qgsovlimporter.py" line="58"/>
         <source>The file does not appear to be a valid OVL v5.0 file:  {fn}</source>
         <translation>Die Datei scheint keine gültige OVL v5.0 Datei zu sein: {fn}</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="75"/>
+        <location filename="../qgsovlimporter.py" line="76"/>
         <source>Importing OVL...</source>
         <translation>OVL wird importiert...</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="75"/>
+        <location filename="../qgsovlimporter.py" line="76"/>
         <source>Cancel</source>
         <translation>Abbrechen</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="76"/>
+        <location filename="../qgsovlimporter.py" line="77"/>
         <source>OVL Import</source>
         <translation>OVL Import</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="139"/>
+        <location filename="../qgsovlimporter.py" line="140"/>
         <source>Import completed</source>
         <translation>Import abgeschlossen</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="141"/>
+        <location filename="../qgsovlimporter.py" line="142"/>
         <source>{cnt} features were imported</source>
         <translation>{cnt} Objekte wurden importiert</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="143"/>
+        <location filename="../qgsovlimporter.py" line="144"/>
         <source>The following objects could not be converted:</source>
         <translation>Folgende Objekte konnten nicht konvertiert werden:</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="156"/>
+        <location filename="../qgsovlimporter.py" line="157"/>
         <source>Please note that even for successfully converted objects, the representation may differ compared to the PCMAP Swissline Software. It is therefore recommended to check the imported data.</source>
         <translation>Bitte beachten, dass die Darstellung auch für erfolgreich konvertierte Objekte gegenüber der PCMAP Swissline Software abweichen kann. Es wird empfohlen, die importierten Daten zu überprüfen.</translation>
     </message>
     <message>
-        <location filename="../qgsovlimporter.py" line="148"/>
+        <location filename="../qgsovlimporter.py" line="149"/>
         <source>The following MSS symbols did not pass validation:</source>
         <translation>Die Validierung folgender MSS Symbole schlug fehl:</translation>
     </message>

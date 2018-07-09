@@ -4,11 +4,14 @@ qgisMinimumVersion=2.0
 qgisMaximumVersion=2.99
 description=OVL file support for KADAS
 about=OVL file support for KADAS.
-version=0.4.1
+version=0.4.2
 author=Sandro Mani, Sourcepole AG
 email=smani@sourcepole.ch
 
 changelog=
+ Rev 0.4.2 (09.07.2018)
+  - Fix incorrect copex -> mss mapping
+
  Rev 0.4.1 (05.09.2017)
   - Catch exceptions while parsing copex data
 

@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/plugins/OvlReader" >
-        <file>icon.png</file>
+    <qresource prefix="/kadas/plugins/ovl" >
+        <file>ovl_import.png</file>
     </qresource>
 </RCC>

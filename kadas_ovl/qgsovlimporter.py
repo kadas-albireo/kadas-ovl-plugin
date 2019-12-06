@@ -15,16 +15,16 @@
 #                                                                         #
 ###########################################################################
 
-from copexreader import OverlayConverter
-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
+from qgis.PyQt.QtXml import *
 from qgis.gui import *
 from qgis.core import *
-from PyQt4.QtXml import *
-from qgis.milx import *
+from kadas.kadasgui import *
 import zipfile
 
+from .copexreader import OverlayConverter
 
 class QgsOvlImporter(QObject):
 
@@ -36,7 +36,6 @@ class QgsOvlImporter(QObject):
 
     def import_ovl(self, filename, iface):
         self.iface = iface
-        self.milx_layer = QgsMilXLayer(iface)
         if not filename:
             lastDir = QSettings().value("/UI/lastImportExportDir", ".")
             filename = QFileDialog.getOpenFileName(self.iface.mainWindow(), self.tr("Select OVL File"), lastDir, self.tr("OVL Files (*.ovl);;"))
@@ -80,6 +79,8 @@ class QgsOvlImporter(QObject):
         progdialog.setCancelButton(None)
         counter = 0
         object = objectList.firstChildElement("object")
+        self.milx_layer = KadasMilxLayer(self.tr("%s - Symbols") % QFileInfo(filename).baseName())
+        self.redlining_layer = KadasItemLayer(self.tr("%s - Drawings") % QFileInfo(filename).baseName(), QgsCoordinateReferenceSystem("EPSG:3857"))
         while not object.isNull():
             counter += 1
             progdialog.setValue(counter)
@@ -133,8 +134,10 @@ class QgsOvlImporter(QObject):
 
             object = object.nextSiblingElement("object")
         if self.milx_layer.items():
-            QgsMapLayerRegistry.instance().addMapLayer(self.milx_layer)
-        self.iface.mapCanvas().clearCache(self.iface.redliningLayer().id())
+            QgsProject.instance().addMapLayer(self.milx_layer)
+        if self.redlining_layer.items():
+            QgsProject.instance().addMapLayer(self.redlining_layer)
+
         self.iface.mapCanvas().refresh()
         dialog = QDialog()
         dialog.setWindowTitle(self.tr("Import completed"))
@@ -167,15 +170,15 @@ class QgsOvlImporter(QObject):
         coord = attribute.firstChildElement("coordList").firstChildElement("coord")
         transform = None
         if crs != "EPSG:4326":
-            transform = QgsCoordinateTransformCache.instance().transform("EPSG:4326", crs)
+            transform = QgsCoordinateTransform(QgsCoordinateReferenceSystem("EPSG:4326"), QgsCoordinateReferenceSystem(crs), QgsProject.instance())
         while not coord.isNull():
             x = float(coord.attribute("x"))
             y = float(coord.attribute("y"))
             if transform:
                 p = transform.transform(x, y)
-                points.append(QgsPointV2(p.x(), p.y()))
+                points.append(QgsPoint(p.x(), p.y()))
             else:
-                points.append(QgsPointV2(x, y))
+                points.append(QgsPoint(x, y))
             coord = coord.nextSiblingElement("coord")
         return attribute, points
 
@@ -265,7 +268,7 @@ class QgsOvlImporter(QObject):
         return factor, dimmColor, outline, fill
 
     def parseRectangleTriangleCircle(self, object):
-        point = QgsPointV2()
+        point = QgsPoint()
         width = 0.0
         height = 0.0
         rotation = 0.0
@@ -278,6 +281,7 @@ class QgsOvlImporter(QObject):
         dimmColor = QColor()
         tooltip = ""
         whu = 0
+        crsMercator = QgsCoordinateReferenceSystem("EPSG:3857")
 
         attribute = object.firstChildElement("attributeList").firstChildElement("attribute")
         while not attribute.isNull():
@@ -305,54 +309,62 @@ class QgsOvlImporter(QObject):
         dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
 
         clsid = object.attribute("clsid")
+        item = None
         if whu == self.Meters:
             da = QgsDistanceArea()
             da.convertMeasurement(width, QGis.Meters, QGis.Degrees, False)
             da.convertMeasurement(height, QGis.Meters, QGis.Degrees, False)
             shape = ""
             if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
-                shape = "rectangle"
-                ring = QgsLineStringV2()
+                ring = QgsLineString()
                 ring.setPoints([
-                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
-                    QgsPointV2(point.x() + .5 * width, point.y() - .5 * height),
-                    QgsPointV2(point.x() + .5 * width, point.y() + .5 * height),
-                    QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
-                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
+                    QgsPoint(point.x() - .5 * width, point.y() - .5 * height),
+                    QgsPoint(point.x() + .5 * width, point.y() - .5 * height),
+                    QgsPoint(point.x() + .5 * width, point.y() + .5 * height),
+                    QgsPoint(point.x() - .5 * width, point.y() + .5 * height),
+                    QgsPoint(point.x() - .5 * width, point.y() - .5 * height)])
+                item = KadasRectangleItem(crsMercator)
             elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
-                shape = "polygon"
                 rotation += 90
-                ring = QgsLineStringV2()
+                ring = QgsLineString()
                 ring.setPoints([
-                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height),
-                    QgsPointV2(point.x() + .5 * width, point.y() - .5 * height),
-                    QgsPointV2(point.x() + .5 * width, point.y() + .5 * height),
-                    QgsPointV2(point.x() - .5 * width, point.y() + .5 * height),
-                    QgsPointV2(point.x() - .5 * width, point.y() - .5 * height)])
+                    QgsPoint(point.x() - .5 * width, point.y() - .5 * height),
+                    QgsPoint(point.x() + .5 * width, point.y() - .5 * height),
+                    QgsPoint(point.x() + .5 * width, point.y() + .5 * height),
+                    QgsPoint(point.x() - .5 * width, point.y() + .5 * height),
+                    QgsPoint(point.x() - .5 * width, point.y() - .5 * height)])
+                item = KadasPolygonItem(crsMercator)
             elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
-                shape = "circle"
-                ring = QgsCircularStringV2()
+                ring = QgsCircularString()
                 ring.setPoints([
-                    QgsPointV2(point.x() + .5 * width, point.y()),
-                    QgsPointV2(point.x(), point.y()),
-                    QgsPointV2(point.x() + .5 * width, point.y())])
-            poly = QgsCurvePolygonV2()
-            poly.setExteriorRing(ring)
-            self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "shape=" + shape, tooltip)
+                    QgsPoint(point.x() + .5 * width, point.y()),
+                    QgsPoint(point.x(), point.y()),
+                    QgsPoint(point.x() + .5 * width, point.y())])
+                item = KadasCircleItem(crsMercator)
+            if item:
+                poly = QgsCurvePolygon()
+                poly.setExteriorRing(ring)
+                item.addPartFromGeometry(poly)
         else:
             width = (width * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
             height = (height * 25.4) / self.iface.mapCanvas().mapSettings().outputDpi()
-            symbol = ""
             if clsid == "{E2CCBD8B-E6DC-4B30-894F-D082A434922B}":  # Rectangle
-                symbol = "rectangle"
+                item = KadasPointItem(crsMercator, KadasPointItem.ICON_FULL_BOX)
             elif clsid == "{FD1F97C1-54FF-4FB2-A7DC-7B27C4ED0BE2}":  # Triangle
                 rotation += 90
-                symbol = "triangle"
+                item = KadasPointItem(crsMercator, KadasPointItem.ICON_FULL_TRIANGLE)
             elif clsid == "{4B866664-04FF-41A9-B741-15E705BA6DAD}":  # Circle
-                symbol = "circle"
+                item = KadasPointItem(crsMercator, KadasPointItem.ICON_CIRCLE)
+            if item:
+                item.setPosition(KadasItemPos(point.x(), point.y()))
 
-            flags = "shape=point,symbol={sym},w={wdth},h={hght},r={rot}".format(sym=symbol, wdth=width, hght=height, rot=rotation)
-            self.iface.redliningLayer().addShape(QgsGeometry(point.clone()), outline, fill, lineSize, lineStyle, fillStyle, flags, tooltip)
+        if item:
+            item.setOutline(QPen(outline, lineSize, lineStyle))
+            item.setFill(QBrush(fill, fillStyle))
+            # TODO: Tooltip?
+            # TODO: Rotation?
+            # TODO: flags = "shape=point,symbol={sym},w={wdth},h={hght},r={rot}".format(sym=symbol, wdth=width, hght=height, rot=rotation)
+            self.redlining_layer.addItem(item)
 
     def parseLine(self, object):
         points = []
@@ -389,13 +401,17 @@ class QgsOvlImporter(QObject):
 
         dimmFactor, dimmColor, outline, _ = self.applyDimm(dimmFactor, dimmColor, outline)
 
-        line = QgsLineStringV2()
+        line = QgsLineString()
         line.setPoints(points)
         if closeable:
             line.addVertex(points.front())
 
         # TODO: roundable, startDelimiter, endDelimiter
-        self.iface.redliningLayer().addShape(QgsGeometry(line), outline, Qt.black, lineSize, lineStyle, Qt.SolidPattern, "shape=line", tooltip)
+        # TODO: tooltip?
+        item = KadasLineItem(QgsCoordinateReferenceSystem("EPSG:3857"))
+        item.addPartFromGeometry(line)
+        item.setOutline(QPen(outline, lineSize, lineStyle))
+        self.redlining_layer.addItem(item)
 
     def parsePolygon(self, object):
         points = []
@@ -430,13 +446,18 @@ class QgsOvlImporter(QObject):
         dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
 
         # TODO: roundable
-        poly = QgsPolygonV2()
-        ring = QgsLineStringV2()
+        # TODO: tooltip?
+        poly = QgsPolygon()
+        ring = QgsLineString()
         ring.setPoints(points)
         ring.addVertex(points[0])
         poly.setExteriorRing(ring)
 
-        self.iface.redliningLayer().addShape(QgsGeometry(poly), outline, fill, lineSize, lineStyle, fillStyle, "shape=polygon", tooltip)
+        item = KadasPolygonItem(QgsCoordinateReferenceSystem("EPSG:3857"))
+        item.addPartFromGeometry(poly)
+        item.setOutline(QPen(outline, lineSize, lineStyle))
+        item.setFill(QBrush(fill, fillStyle))
+        self.redlining_layer.addItem(item)
 
     def parseText(self, object):
         text = ""
@@ -478,7 +499,14 @@ class QgsOvlImporter(QObject):
 
         dimmFactor, dimmColor, color, _ = self.applyDimm(dimmFactor, dimmColor, color)
 
-        self.iface.redliningLayer().addText(text, point, color, font, tooltip, -rotation)
+        # TODO: tooltip
+        item = KadasTextItem(QgsCoordinateReferenceSystem("EPSG:3857"))
+        item.setPosition(KadasItemPos(point.x(), point.y()))
+        item.setText(text)
+        item.setFillColor(color)
+        item.setFont(font)
+        item.setAngle(-rotation)
+        self.redlining_layer.addItem(item)
 
     def parseCopexLine(self, object):
         points = []
@@ -518,15 +546,14 @@ class QgsOvlImporter(QObject):
         if reversePoints:
             points.reverse()
         dimmFactor, dimmColor, outline, _ = self.applyDimm(dimmFactor, dimmColor, outline)
-        v1points = []
+        itempoints = []
         for p in points:
-            v1points.append(QgsPoint(p.x(), p.y()))
-        if mssxml and v1points:
-            (valid, adjmssxml, messages) = QgsMilXItem.validateMssString(mssxml)
+            itempoints.append(KadasItemPos(p.x(), p.y()))
+        if mssxml and itempoints:
+            (valid, adjmssxml, messages) = KadasMilxItem.validateMssString(mssxml)
             if not valid:
                 return (False, mssxml, messages)
-            milx_item = QgsMilXItem()
-            milx_item.initialize(adjmssxml, "", v1points, QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
+            milx_item = KadasMilxItem.fromMssStringAndPoints(adjmssxml, itempoints)
             self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")
@@ -576,15 +603,14 @@ class QgsOvlImporter(QObject):
         if reversePoints:
             points.reverse()
         dimmFactor, dimmColor, outline, fill = self.applyDimm(dimmFactor, dimmColor, outline, fill)
-        v1points = []
+        itempoints = []
         for p in points:
-            v1points.append(QgsPoint(p.x(), p.y()))
-        if mssxml and v1points:
-            (valid, adjmssxml, messages) = QgsMilXItem.validateMssString(mssxml)
+            itempoints.append(KadasItemPos(p.x(), p.y()))
+        if mssxml and itempoints:
+            (valid, adjmssxml, messages) = KadasMilxItem.validateMssString(mssxml)
             if not valid:
                 return (False, mssxml, messages)
-            milx_item = QgsMilXItem()
-            milx_item.initialize(adjmssxml, '', v1points, QgsMilXItem.NEED_CONTROL_POINTS_AND_INDICES)
+            milx_item = KadasMilxItem.fromMssStringAndPoints(adjmssxml, itempoints)
             self.milx_layer.addItem(milx_item)
             return (True, "")
         return (False, "")

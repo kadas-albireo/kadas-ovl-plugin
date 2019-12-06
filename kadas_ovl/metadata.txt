@@ -1,14 +1,17 @@
 [general]
 name=KADAS OVL Loader
-qgisMinimumVersion=2.0
-qgisMaximumVersion=2.99
+qgisMinimumVersion=3.0
+qgisMaximumVersion=3.99
 description=OVL file support for KADAS
 about=OVL file support for KADAS.
-version=0.4.2
+version=1.90
 author=Sandro Mani, Sourcepole AG
 email=smani@sourcepole.ch
 
 changelog=
+ Rev 1.90 (06.12.2019)
+  - Initial port to KADAS 2
+
  Rev 0.4.2 (09.07.2018)
   - Fix incorrect copex -> mss mapping
 

@@ -1,10 +1,10 @@
 import zipfile
 import os
 from kadas_ovl.copexreader.COPEx import *
-from MultiSymbolConverter import MultiSymbolConverter
-from MSSSymbolConverter import MSSSymbolConverter
-from MultiSymbolLineConverter import MultiSymbolLineConverter
-from COPExObject2MSSConverter import COPExObject2MSSConverter
+from .MultiSymbolConverter import MultiSymbolConverter
+from .MSSSymbolConverter import MSSSymbolConverter
+from .MultiSymbolLineConverter import MultiSymbolLineConverter
+from .COPExObject2MSSConverter import COPExObject2MSSConverter
 
 
 base_dir = os.path.dirname(os.path.abspath(__file__))

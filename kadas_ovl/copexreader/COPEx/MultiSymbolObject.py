@@ -1,7 +1,7 @@
-from COPExObject import *
-from MemStream import *
-from CoordLL84 import *
-from KeyValueManager import *
+from .COPExObject import *
+from .MemStream import *
+from .CoordLL84 import *
+from .KeyValueManager import *
 
 
 class MultiSymbolObject(COPExObject):

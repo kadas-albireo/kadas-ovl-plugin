@@ -1,6 +1,6 @@
-from COPExObject import *
-from MemStream import *
-from CoordLL84 import *
+from .COPExObject import *
+from .MemStream import *
+from .CoordLL84 import *
 
 
 class MSSObject(COPExObject):

@@ -1,7 +1,7 @@
 import os
 from kadas_ovl.copexreader.xlrd import open_workbook
 from kadas_ovl.copexreader.COPEx import *
-from COPExObject2MSSConverter import COPExObject2MSSConverter
+from .COPExObject2MSSConverter import COPExObject2MSSConverter
 
 
 class MultiSymbolLineConverter(COPExObject2MSSConverter):

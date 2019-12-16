@@ -60,6 +60,10 @@ class OvlReader(QObject):
         self.ovlAction.triggered.connect(self.__importOVL)
         self.iface.addAction(self.ovlAction, self.iface.NO_MENU, self.iface.MSS_TAB)
 
+        self.ovlShortcut = QShortcut(QKeySequence(Qt.CTRL + Qt.Key_M, Qt.CTRL + Qt.Key_O), self.iface.mainWindow())
+        self.ovlShortcut.activated.connect(self.__importOVL)
+
+
     def unload(self):
         self.iface.removeAction(self.ovlAction, self.iface.NO_MENU, self.iface.MSS_TAB)
 

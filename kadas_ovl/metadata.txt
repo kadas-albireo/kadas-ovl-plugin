@@ -4,11 +4,14 @@ qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=OVL file support for KADAS
 about=OVL file support for KADAS.
-version=1.90
+version=2.0.0
 author=Sandro Mani, Sourcepole AG
 email=smani@sourcepole.ch
 
 changelog=
+ Rev 2.0.0 (18.06.2020)
+  - Set version to 2.0.0
+
  Rev 1.90 (06.12.2019)
   - Initial port to KADAS 2
 
